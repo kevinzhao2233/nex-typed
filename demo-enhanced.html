@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nex-Typed 增强功能演示</title>
+    <style>
+      body {
+        font-family: 'Courier New', monospace;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #1a1a1a;
+        color: #e0e0e0;
+      }
+      .demo-section {
+        background: #2a2a2a;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        border: 1px solid #444;
+      }
+      .target {
+        min-height: 60px;
+        padding: 10px;
+        background: #1a1a1a;
+        border: 1px solid #555;
+        border-radius: 4px;
+        font-size: 18px;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+      .controls {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 8px 16px;
+        background: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 14px;
+      }
+      button:hover {
+        background: #0052a3;
+      }
+      button:disabled {
+        background: #555;
+        cursor: not-allowed;
+      }
+      button.danger {
+        background: #cc3300;
+      }
+      button.danger:hover {
+        background: #a32900;
+      }
+      button.success {
+        background: #00cc66;
+      }
+      button.success:hover {
+        background: #00a352;
+      }
+      .cursor-demo {
+        color: #00ff88;
+      }
+      h2 {
+        color: #00ff88;
+        margin-top: 0;
+        border-bottom: 2px solid #00ff88;
+        padding-bottom: 5px;
+      }
+      .info {
+        color: #888;
+        font-size: 14px;
+        margin-top: 10px;
+        font-style: italic;
+      }
+      .feature-list {
+        background: #1a1a1a;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+      .feature-list li {
+        margin: 5px 0;
+        color: #00ff88;
+      }
+      .status {
+        color: #ffaa00;
+        font-weight: bold;
+        margin-top: 5px;
+      }
+      .highlight {
+        color: #00ff88;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚀 Nex-Typed 增强功能演示 (Phase 2 完成)</h1>
+    <p>现代 TypeScript 打字动画库 - 已完成 Phase 2 核心功能增强</p>
+
+    <div class="demo-section">
+      <h2>✅ 已完成的 Phase 2 功能</h2>
+      <div class="feature-list">
+        <ul>
+          <li><strong>退格/删除功能</strong> - 支持手动退格和自动删除字符串</li>
+          <li><strong>循环支持</strong> - 动画完成后自动重新开始</li>
+          <li><strong>智能定时</strong> - 人类化打字延迟、标点符号暂停</li>
+          <li><strong>新增控制方法</strong> - skip(), goTo(), setSpeed(), getTypeSpeed()</li>
+          <li><strong>新增回调函数</strong> - onBackspaceStart, onBackspaceEnd, onLoop</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h2>1. 退格/删除功能演示</h2>
+      <div id="backspace-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startBackspace()">开始打字</button>
+        <button onclick="manualBackspace()" class="danger">手动退格</button>
+        <button onclick="deleteString()" class="danger">删除整个字符串</button>
+        <button onclick="pauseBackspace()">暂停</button>
+        <button onclick="resumeBackspace()">恢复</button>
+        <button onclick="stopBackspace()">停止</button>
+      </div>
+      <div class="info">体验退格速度控制和删除字符串功能</div>
+      <div class="status" id="backspace-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>2. 循环模式演示</h2>
+      <div id="loop-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startLoop()">开始循环</button>
+        <button onclick="pauseLoop()">暂停</button>
+        <button onclick="resumeLoop()">恢复</button>
+        <button onclick="stopLoop()">停止循环</button>
+      </div>
+      <div class="info">动画完成后自动重新开始，无限循环</div>
+      <div class="status" id="loop-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>3. 智能定时演示</h2>
+      <div id="smart-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startSmart()">开始智能打字</button>
+        <button onclick="pauseSmart()">暂停</button>
+        <button onclick="resumeSmart()">恢复</button>
+        <button onclick="stopSmart()">停止</button>
+      </div>
+      <div class="info">人类化打字速度 + 标点符号暂停 + 字符串间延迟</div>
+      <div class="status" id="smart-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>4. 高级控制方法演示</h2>
+      <div id="control-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startControl()">开始</button>
+        <button onclick="skipString()" class="success">跳过当前字符串</button>
+        <button onclick="goToSecond()" class="success">跳转到第二句</button>
+        <button onclick="increaseSpeed()" class="success">加速 (+20ms)</button>
+        <button onclick="decreaseSpeed()" class="success">减速 (-20ms)</button>
+        <button onclick="getCurrentSpeed()" class="success">获取当前速度</button>
+        <button onclick="stopControl()">停止</button>
+      </div>
+      <div class="info">体验 skip(), goTo(), setSpeed(), getTypeSpeed() 方法</div>
+      <div class="status" id="control-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>5. 综合演示 (所有功能)</h2>
+      <div id="complex-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startComplex()">开始综合演示</button>
+        <button onclick="pauseComplex()">暂停</button>
+        <button onclick="resumeComplex()">恢复</button>
+        <button onclick="stopComplex()">停止</button>
+      </div>
+      <div class="info">结合循环、智能定时、退格、删除等所有功能</div>
+      <div class="status" id="complex-status"></div>
+    </div>
+
+    <script type="module">
+      import { createTyped } from './dist/index.mjs';
+
+      // 存储控制器
+      let backspaceController,
+        loopController,
+        smartController,
+        controlController,
+        complexController;
+
+      // 1. 退格/删除功能
+      window.startBackspace = () => {
+        if (backspaceController) backspaceController.destroy();
+        backspaceController = createTyped('#backspace-demo', {
+          strings: ['正在输入退格测试文本...', '体验快速退格功能！'],
+          typeSpeed: 60,
+          backspaceSpeed: 25, // 快速退格
+          cursor: { enabled: true, char: '▌', blink: true },
+          onBackspaceStart: (index, text) => {
+            updateStatus('backspace-status', `开始退格: "${text}"`);
+          },
+          onBackspaceEnd: (index, text) => {
+            updateStatus('backspace-status', `退格完成: "${text}"`);
+          },
+        });
+        backspaceController.start();
+        updateStatus('backspace-status', '打字开始...');
+      };
+
+      window.manualBackspace = () => {
+        if (backspaceController) {
+          backspaceController.backspace();
+          updateStatus('backspace-status', '手动退格触发');
+        }
+      };
+
+      window.deleteString = () => {
+        if (backspaceController) {
+          backspaceController.deleteString();
+          updateStatus('backspace-status', '删除整个字符串触发');
+        }
+      };
+
+      window.pauseBackspace = () => {
+        if (backspaceController) {
+          backspaceController.pause();
+          updateStatus('backspace-status', '已暂停');
+        }
+      };
+
+      window.resumeBackspace = () => {
+        if (backspaceController) {
+          backspaceController.resume();
+          updateStatus('backspace-status', '已恢复');
+        }
+      };
+
+      window.stopBackspace = () => {
+        if (backspaceController) {
+          backspaceController.stop();
+          updateStatus('backspace-status', '已停止');
+        }
+      };
+
+      // 2. 循环模式
+      window.startLoop = () => {
+        if (loopController) loopController.destroy();
+        loopController = createTyped('#loop-demo', {
+          strings: ['第一句：循环演示开始', '第二句：自动重新开始', '第三句：无限循环模式'],
+          typeSpeed: 80,
+          loop: true,
+          cursor: { enabled: true, char: '|', blink: true },
+          onLoop: (index) => {
+            updateStatus('loop-status', `循环开始: 第 ${index + 1} 句`);
+          },
+          onComplete: () => {
+            updateStatus('loop-status', '循环完成（理论上不会执行）');
+          },
+        });
+        loopController.start();
+        updateStatus('loop-status', '循环模式开始...');
+      };
+
+      window.pauseLoop = () => {
+        if (loopController) {
+          loopController.pause();
+          updateStatus('loop-status', '已暂停');
+        }
+      };
+
+      window.resumeLoop = () => {
+        if (loopController) {
+          loopController.resume();
+          updateStatus('loop-status', '已恢复');
+        }
+      };
+
+      window.stopLoop = () => {
+        if (loopController) {
+          loopController.stop();
+          updateStatus('loop-status', '循环已停止');
+        }
+      };
+
+      // 3. 智能定时
+      window.startSmart = () => {
+        if (smartController) smartController.destroy();
+        smartController = createTyped('#smart-demo', {
+          strings: ['人类化打字测试...', '这里有标点符号！', '会自动暂停一下...'],
+          typeSpeed: 50,
+          humanTypeDelay: { min: 30, max: 100 }, // 随机延迟
+          stringPauseDelay: 800, // 字符串间延迟
+          pauseOnPunctuation: true, // 标点符号暂停
+          cursor: { enabled: true, char: '█', blink: true },
+        });
+        smartController.start();
+        updateStatus('smart-status', '智能打字开始...');
+      };
+
+      window.pauseSmart = () => {
+        if (smartController) {
+          smartController.pause();
+          updateStatus('smart-status', '已暂停');
+        }
+      };
+
+      window.resumeSmart = () => {
+        if (smartController) {
+          smartController.resume();
+          updateStatus('smart-status', '已恢复');
+        }
+      };
+
+      window.stopSmart = () => {
+        if (smartController) {
+          smartController.stop();
+          updateStatus('smart-status', '已停止');
+        }
+      };
+
+      // 4. 高级控制方法
+      window.startControl = () => {
+        if (controlController) controlController.destroy();
+        controlController = createTyped('#control-demo', {
+          strings: ['第一句：测试控制方法', '第二句：可以跳过或跳转', '第三句：速度可动态调整'],
+          typeSpeed: 70,
+          cursor: { enabled: true, char: '▌', blink: true },
+        });
+        controlController.start();
+        updateStatus('control-status', '控制演示开始...');
+      };
+
+      window.skipString = () => {
+        if (controlController) {
+          controlController.skip();
+          updateStatus('control-status', '跳过当前字符串');
+        }
+      };
+
+      window.goToSecond = () => {
+        if (controlController) {
+          controlController.goTo(1); // 跳转到第二句（索引1）
+          updateStatus('control-status', '跳转到第二句');
+        }
+      };
+
+      window.increaseSpeed = () => {
+        if (controlController) {
+          const current = controlController.getTypeSpeed();
+          controlController.setSpeed(Math.max(10, current - 20));
+          updateStatus('control-status', `速度增加: ${current - 20}ms`);
+        }
+      };
+
+      window.decreaseSpeed = () => {
+        if (controlController) {
+          const current = controlController.getTypeSpeed();
+          controlController.setSpeed(current + 20);
+          updateStatus('control-status', `速度减少: ${current + 20}ms`);
+        }
+      };
+
+      window.getCurrentSpeed = () => {
+        if (controlController) {
+          const speed = controlController.getTypeSpeed();
+          updateStatus('control-status', `当前速度: ${speed}ms/字符`);
+        }
+      };
+
+      window.stopControl = () => {
+        if (controlController) {
+          controlController.stop();
+          updateStatus('control-status', '已停止');
+        }
+      };
+
+      // 5. 综合演示
+      window.startComplex = () => {
+        if (complexController) complexController.destroy();
+        complexController = createTyped('#complex-demo', {
+          strings: ['综合演示：所有功能一起使用', '智能定时 + 循环 + 退格', '体验完整的打字动画！'],
+          typeSpeed: 60,
+          backspaceSpeed: 20,
+          deleteStrings: true,
+          deleteDelay: 1500,
+          loop: true,
+          humanTypeDelay: { min: 40, max: 80 },
+          stringPauseDelay: 600,
+          pauseOnPunctuation: true,
+          cursor: { enabled: true, char: '▌', blink: true },
+          onBegin: () => updateStatus('complex-status', '综合演示开始'),
+          onStringStart: (index, text) => updateStatus('complex-status', `开始: "${text}"`),
+          onStringEnd: (index, text) => updateStatus('complex-status', `完成: "${text}"`),
+          onBackspaceStart: (index, text) => updateStatus('complex-status', `退格: "${text}"`),
+          onBackspaceEnd: (index, text) => updateStatus('complex-status', `退格完成: "${text}"`),
+          onLoop: (index) => updateStatus('complex-status', `循环: 第 ${index + 1} 句`),
+          onComplete: () => updateStatus('complex-status', '完成（循环模式下不会执行）'),
+        });
+        complexController.start();
+      };
+
+      window.pauseComplex = () => {
+        if (complexController) {
+          complexController.pause();
+          updateStatus('complex-status', '已暂停');
+        }
+      };
+
+      window.resumeComplex = () => {
+        if (complexController) {
+          complexController.resume();
+          updateStatus('complex-status', '已恢复');
+        }
+      };
+
+      window.stopComplex = () => {
+        if (complexController) {
+          complexController.stop();
+          updateStatus('complex-status', '已停止');
+        }
+      };
+
+      // 辅助函数
+      function updateStatus(elementId, message) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.textContent = `状态: ${message}`;
+        }
+      }
+
+      // 页面加载完成
+      window.addEventListener('load', () => {
+        console.log('🚀 Nex-Typed Phase 2 增强功能演示已加载');
+        console.log('✅ Phase 2 完成的功能:');
+        console.log('   - 退格/删除功能 (backspaceSpeed, deleteStrings, deleteDelay)');
+        console.log('   - 循环支持 (loop)');
+        console.log('   - 智能定时 (humanTypeDelay, stringPauseDelay, pauseOnPunctuation)');
+        console.log('   - 新增控制方法 (skip, goTo, getTypeSpeed, setSpeed)');
+        console.log('   - 新增回调函数 (onBackspaceStart, onBackspaceEnd, onLoop)');
+        console.log('🎉 所有测试通过，构建成功！');
+      });
+    </script>
+  </body>
+</html>

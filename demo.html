@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nex-Typed Demo</title>
+    <style>
+      body {
+        font-family: 'Courier New', monospace;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #1a1a1a;
+        color: #e0e0e0;
+      }
+      .demo-section {
+        background: #2a2a2a;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        border: 1px solid #444;
+      }
+      .target {
+        min-height: 60px;
+        padding: 10px;
+        background: #1a1a1a;
+        border: 1px solid #555;
+        border-radius: 4px;
+        font-size: 18px;
+        line-height: 1.5;
+      }
+      .controls {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 8px 16px;
+        background: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      button:hover {
+        background: #0052a3;
+      }
+      button:disabled {
+        background: #555;
+        cursor: not-allowed;
+      }
+      .cursor-demo {
+        color: #00ff88;
+      }
+      h2 {
+        color: #00ff88;
+        margin-top: 0;
+      }
+      .info {
+        color: #888;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚀 Nex-Typed Demo</h1>
+    <p>A modern TypeScript typing animation library with enhanced features.</p>
+
+    <div class="demo-section">
+      <h2>✨ Basic Typing</h2>
+      <div id="basic-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startBasic()">Start</button>
+        <button onclick="pauseBasic()">Pause</button>
+        <button onclick="resumeBasic()">Resume</button>
+        <button onclick="stopBasic()">Stop</button>
+        <button onclick="destroyBasic()">Destroy</button>
+      </div>
+      <div class="info">Tests basic typing animation with cursor</div>
+    </div>
+
+    <div class="demo-section">
+      <h2>🎯 Multiple Strings</h2>
+      <div id="multi-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startMulti()">Start</button>
+        <button onclick="pauseMulti()">Pause</button>
+        <button onclick="resumeMulti()">Resume</button>
+        <button onclick="stopMulti()">Stop</button>
+      </div>
+      <div class="info">Tests sequential typing of multiple strings</div>
+    </div>
+
+    <div class="demo-section">
+      <h2>⚡ Custom Cursor & Speed</h2>
+      <div id="custom-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startCustom()">Start</button>
+        <button onclick="pauseCustom()">Pause</button>
+        <button onclick="resumeCustom()">Resume</button>
+        <button onclick="stopCustom()">Stop</button>
+      </div>
+      <div class="info">Tests custom cursor character and faster typing speed</div>
+    </div>
+
+    <div class="demo-section">
+      <h2>🔄 Pause/Resume Test</h2>
+      <div id="pause-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startPauseTest()">Start</button>
+        <button onclick="testPauseResume()">Test Pause/Resume</button>
+        <button onclick="stopPauseTest()">Stop</button>
+      </div>
+      <div class="info">Tests cursor blink resume functionality (fixed in v0.1.0)</div>
+    </div>
+
+    <script type="module">
+      // Import the library from the built file
+      import { createTyped } from './dist/index.mjs';
+
+      // Store controllers
+      let basicController, multiController, customController, pauseController;
+
+      // Basic demo
+      window.startBasic = () => {
+        if (basicController) basicController.destroy();
+        basicController = createTyped('#basic-demo', {
+          strings: [
+            'Hello, World! 👋',
+            'Welcome to Nex-Typed!',
+            'A modern typing animation library.',
+          ],
+          typeSpeed: 80,
+          startDelay: 500,
+          cursor: {
+            enabled: true,
+            char: '|',
+            blink: true,
+          },
+          onBegin: () => console.log('Basic: Animation started'),
+          onStringStart: (index, text) => console.log(`Basic: String ${index} started: "${text}"`),
+          onStringEnd: (index, text) => console.log(`Basic: String ${index} completed: "${text}"`),
+          onComplete: () => console.log('Basic: Animation completed'),
+        });
+        basicController.start();
+      };
+
+      window.pauseBasic = () => basicController?.pause();
+      window.resumeBasic = () => basicController?.resume();
+      window.stopBasic = () => basicController?.stop();
+      window.destroyBasic = () => {
+        basicController?.destroy();
+        basicController = null;
+      };
+
+      // Multiple strings demo
+      window.startMulti = () => {
+        if (multiController) multiController.destroy();
+        multiController = createTyped('#multi-demo', {
+          strings: ['First string typed...', 'Then the second one...', 'And finally the third!'],
+          typeSpeed: 60,
+          startDelay: 300,
+          cursor: {
+            enabled: true,
+            char: '_',
+            blink: true,
+          },
+        });
+        multiController.start();
+      };
+
+      window.pauseMulti = () => multiController?.pause();
+      window.resumeMulti = () => multiController?.resume();
+      window.stopMulti = () => multiController?.stop();
+
+      // Custom cursor demo
+      window.startCustom = () => {
+        if (customController) customController.destroy();
+        customController = createTyped('#custom-demo', {
+          strings: ['Custom cursor here ▶', 'Faster typing speed ⚡', 'Different character ✨'],
+          typeSpeed: 40, // Faster
+          cursor: {
+            enabled: true,
+            char: '█', // Block cursor
+            blink: true,
+          },
+        });
+        customController.start();
+      };
+
+      window.pauseCustom = () => customController?.pause();
+      window.resumeCustom = () => customController?.resume();
+      window.stopCustom = () => customController?.stop();
+
+      // Pause/Resume test (demonstrates the cursor blink fix)
+      window.startPauseTest = () => {
+        if (pauseController) pauseController.destroy();
+        pauseController = createTyped('#pause-demo', {
+          strings: [
+            'Watch the cursor blink...',
+            'Pause the animation...',
+            'Resume and see cursor blink again!',
+          ],
+          typeSpeed: 70,
+          startDelay: 200,
+          cursor: {
+            enabled: true,
+            char: '▌',
+            blink: true,
+          },
+          onPause: (index, charIndex) => {
+            console.log('Paused at:', index, charIndex);
+            document.querySelector('#pause-demo').style.opacity = '0.7';
+          },
+          onResume: (index, charIndex) => {
+            console.log('Resumed at:', index, charIndex);
+            document.querySelector('#pause-demo').style.opacity = '1';
+          },
+        });
+        pauseController.start();
+      };
+
+      window.testPauseResume = () => {
+        if (!pauseController) return;
+        pauseController.pause();
+        setTimeout(() => {
+          pauseController.resume();
+        }, 2000);
+      };
+
+      window.stopPauseTest = () => pauseController?.stop();
+
+      // Auto-start basic demo on load
+      window.addEventListener('load', () => {
+        console.log('🚀 Nex-Typed Demo loaded successfully!');
+        console.log('✅ All critical bug fixes applied:');
+        console.log('   - Fixed duplicate CursorOptions interface');
+        console.log('   - Fixed null safety in scheduleNextTick');
+        console.log('   - Fixed cursor blink resume after pause');
+        console.log('   - Updated package.json metadata');
+        console.log('   - Fixed broken tests');
+      });
+    </script>
+  </body>
+</html>

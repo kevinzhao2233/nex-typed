@@ -1,3 +1,3 @@
-import { createTyped } from "./createTyped";
+import { createTyped } from './createTyped';
 
 export { createTyped };

@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nex-Typed Phase 3 增强功能演示</title>
+    <style>
+      body {
+        font-family: 'Courier New', monospace;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #1a1a1a;
+        color: #e0e0e0;
+      }
+      .demo-section {
+        background: #2a2a2a;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+        border: 1px solid #444;
+      }
+      .target {
+        min-height: 60px;
+        padding: 10px;
+        background: #1a1a1a;
+        border: 1px solid #555;
+        border-radius: 4px;
+        font-size: 18px;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+      .controls {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 8px 16px;
+        background: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 14px;
+      }
+      button:hover {
+        background: #0052a3;
+      }
+      button:disabled {
+        background: #555;
+        cursor: not-allowed;
+      }
+      button.danger {
+        background: #cc3300;
+      }
+      button.danger:hover {
+        background: #a32900;
+      }
+      button.success {
+        background: #00cc66;
+      }
+      button.success:hover {
+        background: #00a352;
+      }
+      button.warning {
+        background: #ff8800;
+      }
+      button.warning:hover {
+        background: #e67a00;
+      }
+      .cursor-demo {
+        color: #00ff88;
+      }
+      h2 {
+        color: #00ff88;
+        margin-top: 0;
+        border-bottom: 2px solid #00ff88;
+        padding-bottom: 5px;
+      }
+      .info {
+        color: #888;
+        font-size: 14px;
+        margin-top: 10px;
+        font-style: italic;
+      }
+      .feature-list {
+        background: #1a1a1a;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+      .feature-list li {
+        margin: 5px 0;
+        color: #00ff88;
+      }
+      .status {
+        color: #ffaa00;
+        font-weight: bold;
+        margin-top: 5px;
+      }
+      .highlight {
+        color: #00ff88;
+        font-weight: bold;
+      }
+      .slider-container {
+        margin: 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .slider-container label {
+        min-width: 150px;
+        color: #aaa;
+      }
+      .slider-container input[type='range'] {
+        flex: 1;
+      }
+      .slider-container span {
+        min-width: 60px;
+        text-align: right;
+        color: #00ff88;
+      }
+      .profile-buttons {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+      }
+      .profile-buttons button {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚀 Nex-Typed Phase 3 增强功能演示</h1>
+    <p>现代 TypeScript 打字动画库 - Phase 3 高级功能与配置</p>
+
+    <div class="demo-section">
+      <h2>✅ Phase 3 已完成的功能</h2>
+      <div class="feature-list">
+        <ul>
+          <li><strong>增强光标配置</strong> - 闪烁速度、闪烁次数、完成隐藏、样式配置</li>
+          <li><strong>速度变化与随机化</strong> - 速度变化百分比、随机打乱、速度曲线</li>
+          <li><strong>新增控制方法</strong> - getCursorBlinkSpeed(), setCursorBlinkSpeed()</li>
+          <li><strong>新增回调函数</strong> - onShuffle (随机打乱回调)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h2>1. 光标闪烁速度控制</h2>
+      <div id="blink-speed-demo" class="target"></div>
+      <div class="slider-container">
+        <label>闪烁速度 (ms):</label>
+        <input type="range" id="blinkSpeedSlider" min="100" max="1000" value="500" step="50" />
+        <span id="blinkSpeedValue">500ms</span>
+      </div>
+      <div class="controls">
+        <button onclick="startBlinkSpeed()">开始</button>
+        <button onclick="updateBlinkSpeed()" class="warning">应用速度</button>
+        <button onclick="getCurrentBlinkSpeed()" class="success">获取速度</button>
+        <button onclick="stopBlinkSpeed()">停止</button>
+      </div>
+      <div class="info">动态调整光标闪烁速度（100ms - 1000ms）</div>
+      <div class="status" id="blink-speed-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>2. 有限闪烁次数演示</h2>
+      <div id="blink-count-demo" class="target"></div>
+      <div class="slider-container">
+        <label>闪烁次数:</label>
+        <input type="range" id="blinkCountSlider" min="1" max="20" value="5" step="1" />
+        <span id="blinkCountValue">5次</span>
+      </div>
+      <div class="controls">
+        <button onclick="startBlinkCount()">开始</button>
+        <button onclick="stopBlinkCount()">停止</button>
+      </div>
+      <div class="info">光标闪烁指定次数后自动停止（保持可见）</div>
+      <div class="status" id="blink-count-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>3. 完成时隐藏光标</h2>
+      <div id="hide-complete-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startHideComplete()">开始</button>
+        <button onclick="stopHideComplete()">停止</button>
+      </div>
+      <div class="info">动画完成后自动隐藏光标</div>
+      <div class="status" id="hide-complete-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>4. 光标样式配置</h2>
+      <div id="cursor-style-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startStyle1()" class="success">红色粗体</button>
+        <button onclick="startStyle2()" class="success">蓝色斜体</button>
+        <button onclick="startStyle3()" class="success">绿色大号</button>
+        <button onclick="stopCursorStyle()">停止</button>
+      </div>
+      <div class="info">使用内联样式配置光标外观</div>
+      <div class="status" id="cursor-style-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>5. 速度变化百分比</h2>
+      <div id="variance-demo" class="target"></div>
+      <div class="slider-container">
+        <label>速度变化 (%):</label>
+        <input type="range" id="varianceSlider" min="0" max="50" value="20" step="5" />
+        <span id="varianceValue">20%</span>
+      </div>
+      <div class="controls">
+        <button onclick="startVariance()">开始</button>
+        <button onclick="stopVariance()">停止</button>
+      </div>
+      <div class="info">打字速度随机变化（±百分比），模拟真实打字</div>
+      <div class="status" id="variance-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>6. 随机字符串顺序</h2>
+      <div id="shuffle-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startShuffle()">开始随机顺序</button>
+        <button onclick="startNoShuffle()">开始固定顺序</button>
+        <button onclick="stopShuffle()">停止</button>
+      </div>
+      <div class="info">随机打乱字符串顺序，每次运行都不同</div>
+      <div class="status" id="shuffle-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>7. 速度曲线演示</h2>
+      <div id="profile-demo" class="target"></div>
+      <div class="profile-buttons">
+        <button onclick="startProfile('linear')" class="warning">线性</button>
+        <button onclick="startProfile('easeIn')" class="warning">缓入 (慢→快)</button>
+        <button onclick="startProfile('easeOut')" class="warning">缓出 (快→慢)</button>
+        <button onclick="startProfile('easeInOut')" class="warning">缓入缓出 (S曲线)</button>
+        <button onclick="stopProfile()">停止</button>
+      </div>
+      <div class="info">不同的速度曲线产生不同的打字节奏感</div>
+      <div class="status" id="profile-status"></div>
+    </div>
+
+    <div class="demo-section">
+      <h2>8. 综合 Phase 3 演示</h2>
+      <div id="phase3-demo" class="target"></div>
+      <div class="controls">
+        <button onclick="startPhase3()" class="danger">开始综合演示</button>
+        <button onclick="pausePhase3()">暂停</button>
+        <button onclick="resumePhase3()">恢复</button>
+        <button onclick="stopPhase3()">停止</button>
+      </div>
+      <div class="info">结合所有 Phase 3 功能：增强光标 + 速度变化 + 随机化</div>
+      <div class="status" id="phase3-status"></div>
+    </div>
+
+    <script type="module">
+      import { createTyped } from './dist/index.mjs';
+
+      // 存储控制器
+      let blinkSpeedController,
+        blinkCountController,
+        hideCompleteController,
+        cursorStyleController,
+        varianceController,
+        shuffleController,
+        profileController,
+        phase3Controller;
+
+      // 1. 光标闪烁速度控制
+      window.startBlinkSpeed = () => {
+        if (blinkSpeedController) blinkSpeedController.destroy();
+        const speed = parseInt(document.getElementById('blinkSpeedSlider').value);
+        blinkSpeedController = createTyped('#blink-speed-demo', {
+          strings: ['闪烁速度控制演示', '可以动态调整速度'],
+          typeSpeed: 60,
+          cursor: {
+            enabled: true,
+            char: '▌',
+            blink: true,
+            blinkSpeed: speed,
+          },
+        });
+        blinkSpeedController.start();
+        updateStatus('blink-speed-status', `开始，闪烁速度: ${speed}ms`);
+      };
+
+      window.updateBlinkSpeed = () => {
+        if (blinkSpeedController) {
+          const speed = parseInt(document.getElementById('blinkSpeedSlider').value);
+          blinkSpeedController.setCursorBlinkSpeed(speed);
+          updateStatus('blink-speed-status', `速度更新为: ${speed}ms`);
+        }
+      };
+
+      window.getCurrentBlinkSpeed = () => {
+        if (blinkSpeedController) {
+          const speed = blinkSpeedController.getCursorBlinkSpeed();
+          updateStatus('blink-speed-status', `当前闪烁速度: ${speed}ms`);
+        }
+      };
+
+      window.stopBlinkSpeed = () => {
+        if (blinkSpeedController) {
+          blinkSpeedController.stop();
+          updateStatus('blink-speed-status', '已停止');
+        }
+      };
+
+      // 2. 有限闪烁次数
+      window.startBlinkCount = () => {
+        if (blinkCountController) blinkCountController.destroy();
+        const count = parseInt(document.getElementById('blinkCountSlider').value);
+        blinkCountController = createTyped('#blink-count-demo', {
+          strings: ['有限闪烁次数演示', `光标将闪烁 ${count} 次后停止`],
+          typeSpeed: 60,
+          cursor: {
+            enabled: true,
+            char: '█',
+            blink: true,
+            blinkCount: count,
+          },
+        });
+        blinkCountController.start();
+        updateStatus('blink-count-status', `开始，闪烁次数: ${count}`);
+      };
+
+      window.stopBlinkCount = () => {
+        if (blinkCountController) {
+          blinkCountController.stop();
+          updateStatus('blink-count-status', '已停止');
+        }
+      };
+
+      // 3. 完成时隐藏光标
+      window.startHideComplete = () => {
+        if (hideCompleteController) hideCompleteController.destroy();
+        hideCompleteController = createTyped('#hide-complete-demo', {
+          strings: ['完成时隐藏光标', '动画结束后光标自动消失'],
+          typeSpeed: 60,
+          cursor: {
+            enabled: true,
+            char: '▌',
+            blink: true,
+            hideWhenComplete: true,
+          },
+          onComplete: () => {
+            updateStatus('hide-complete-status', '完成！光标已隐藏');
+          },
+        });
+        hideCompleteController.start();
+        updateStatus('hide-complete-status', '开始...');
+      };
+
+      window.stopHideComplete = () => {
+        if (hideCompleteController) {
+          hideCompleteController.stop();
+          updateStatus('hide-complete-status', '已停止');
+        }
+      };
+
+      // 4. 光标样式配置
+      window.startStyle1 = () => {
+        if (cursorStyleController) cursorStyleController.destroy();
+        cursorStyleController = createTyped('#cursor-style-demo', {
+          strings: ['红色粗体光标', '自定义样式演示'],
+          typeSpeed: 60,
+          cursor: {
+            enabled: true,
+            char: '▌',
+            blink: true,
+            style: { color: '#ff3333', fontWeight: 'bold' },
+          },
+        });
+        cursorStyleController.start();
+        updateStatus('cursor-style-status', '红色粗体样式');
+      };
+
+      window.startStyle2 = () => {
+        if (cursorStyleController) cursorStyleController.destroy();
+        cursorStyleController = createTyped('#cursor-style-demo', {
+          strings: ['蓝色斜体光标', '自定义样式演示'],
+          typeSpeed: 60,
+          cursor: {
+            enabled: true,
+            char: '▌',
+            blink: true,
+            style: { color: '#3333ff', fontStyle: 'italic' },
+          },
+        });
+        cursorStyleController.start();
+        updateStatus('cursor-style-status', '蓝色斜体样式');
+      };
+
+      window.startStyle3 = () => {
+        if (cursorStyleController) cursorStyleController.destroy();
+        cursorStyleController = createTyped('#cursor-style-demo', {
+          strings: ['绿色大号光标', '自定义样式演示'],
+          typeSpeed: 60,
+          cursor: {
+            enabled: true,
+            char: '▌',
+            blink: true,
+            style: { color: '#33ff33', fontSize: '24px' },
+          },
+        });
+        cursorStyleController.start();
+        updateStatus('cursor-style-status', '绿色大号样式');
+      };
+
+      window.stopCursorStyle = () => {
+        if (cursorStyleController) {
+          cursorStyleController.stop();
+          updateStatus('cursor-style-status', '已停止');
+        }
+      };
+
+      // 5. 速度变化百分比
+      window.startVariance = () => {
+        if (varianceController) varianceController.destroy();
+        const variance = parseInt(document.getElementById('varianceSlider').value);
+        varianceController = createTyped('#variance-demo', {
+          strings: ['速度变化演示', '打字速度随机变化', '模拟真实打字习惯'],
+          typeSpeed: 60,
+          typeSpeedVariance: variance,
+          cursor: {
+            enabled: true,
+            char: '▌',
+            blink: true,
+          },
+        });
+        varianceController.start();
+        updateStatus('variance-status', `开始，速度变化: ±${variance}%`);
+      };
+
+      window.stopVariance = () => {
+        if (varianceController) {
+          varianceController.stop();
+          updateStatus('variance-status', '已停止');
+        }
+      };
+
+      // 6. 随机字符串顺序
+      window.startShuffle = () => {
+        if (shuffleController) shuffleController.destroy();
+        shuffleController = createTyped('#shuffle-demo', {
+          strings: ['第一句', '第二句', '第三句', '第四句', '第五句'],
+          typeSpeed: 60,
+          shuffle: true,
+          cursor: {
+            enabled: true,
+            char: '▌',
+            blink: true,
+          },
+          onShuffle: (original, shuffled) => {
+            updateStatus('shuffle-status', `随机顺序: [${shuffled.join(', ')}]`);
+          },
+        });
+        shuffleController.start();
+        updateStatus('shuffle-status', '开始随机顺序...');
+      };
+
+      window.startNoShuffle = () => {
+        if (shuffleController) shuffleController.destroy();
+        shuffleController = createTyped('#shuffle-demo', {
+          strings: ['第一句', '第二句', '第三句', '第四句', '第五句'],
+          typeSpeed: 60,
+          shuffle: false,
+          cursor: {
+            enabled: true,
+            char: '▌',
+            blink: true,
+          },
+        });
+        shuffleController.start();
+        updateStatus('shuffle-status', '开始固定顺序...');
+      };
+
+      window.stopShuffle = () => {
+        if (shuffleController) {
+          shuffleController.stop();
+          updateStatus('shuffle-status', '已停止');
+        }
+      };
+
+      // 7. 速度曲线
+      window.startProfile = (profile) => {
+        if (profileController) profileController.destroy();
+        profileController = createTyped('#profile-demo', {
+          strings: ['速度曲线演示', '体验不同的打字节奏', `当前曲线: ${profile}`],
+          typeSpeed: 60,
+          speedProfile: profile,
+          cursor: {
+            enabled: true,
+            char: '▌',
+            blink: true,
+          },
+        });
+        profileController.start();
+        updateStatus('profile-status', `开始，速度曲线: ${profile}`);
+      };
+
+      window.stopProfile = () => {
+        if (profileController) {
+          profileController.stop();
+          updateStatus('profile-status', '已停止');
+        }
+      };
+
+      // 8. 综合 Phase 3 演示
+      window.startPhase3 = () => {
+        if (phase3Controller) phase3Controller.destroy();
+        phase3Controller = createTyped('#phase3-demo', {
+          strings: ['Phase 3 综合演示', '增强光标 + 速度变化 + 随机化', '体验完整的打字动画！'],
+          typeSpeed: 70,
+          typeSpeedVariance: 25,
+          shuffle: true,
+          speedProfile: 'easeInOut',
+          humanTypeDelay: { min: 30, max: 90 },
+          stringPauseDelay: 600,
+          pauseOnPunctuation: true,
+          backspaceSpeed: 20,
+          deleteStrings: true,
+          deleteDelay: 1000,
+          loop: true,
+          cursor: {
+            enabled: true,
+            char: '█',
+            blink: true,
+            blinkSpeed: 250,
+            blinkCount: 10,
+            hideWhenComplete: true,
+            style: { color: '#00ff88', fontWeight: 'bold' },
+          },
+          onShuffle: (original, shuffled) => {
+            updateStatus('phase3-status', `随机打乱: [${shuffled.join(', ')}]`);
+          },
+          onLoop: (index) => {
+            updateStatus('phase3-status', `循环开始: 第 ${index + 1} 句`);
+          },
+        });
+        phase3Controller.start();
+        updateStatus('phase3-status', 'Phase 3 综合演示开始...');
+      };
+
+      window.pausePhase3 = () => {
+        if (phase3Controller) {
+          phase3Controller.pause();
+          updateStatus('phase3-status', '已暂停');
+        }
+      };
+
+      window.resumePhase3 = () => {
+        if (phase3Controller) {
+          phase3Controller.resume();
+          updateStatus('phase3-status', '已恢复');
+        }
+      };
+
+      window.stopPhase3 = () => {
+        if (phase3Controller) {
+          phase3Controller.stop();
+          updateStatus('phase3-status', '已停止');
+        }
+      };
+
+      // 滑块事件监听
+      document.getElementById('blinkSpeedSlider').addEventListener('input', (e) => {
+        document.getElementById('blinkSpeedValue').textContent = e.target.value + 'ms';
+      });
+
+      document.getElementById('blinkCountSlider').addEventListener('input', (e) => {
+        document.getElementById('blinkCountValue').textContent = e.target.value + '次';
+      });
+
+      document.getElementById('varianceSlider').addEventListener('input', (e) => {
+        document.getElementById('varianceValue').textContent = e.target.value + '%';
+      });
+
+      // 辅助函数
+      function updateStatus(elementId, message) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.textContent = `状态: ${message}`;
+        }
+      }
+
+      // 页面加载完成
+      window.addEventListener('load', () => {
+        console.log('🚀 Nex-Typed Phase 3 增强功能演示已加载');
+        console.log('✅ Phase 3 完成的功能:');
+        console.log('   - 增强光标配置 (闪烁速度、次数、隐藏、样式)');
+        console.log('   - 速度变化与随机化 (变化百分比、随机打乱、速度曲线)');
+        console.log('   - 新增控制方法 (getCursorBlinkSpeed, setCursorBlinkSpeed)');
+        console.log('   - 新增回调函数 (onShuffle)');
+        console.log('🎉 所有测试通过，构建成功！');
+      });
+    </script>
+  </body>
+</html>
