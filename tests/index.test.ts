@@ -1,4 +1,4 @@
-import { expect, test, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, expect, test } from 'vitest';
 import { createTyped } from '../src';
 
 // Mock DOM environment for testing
@@ -13,7 +13,7 @@ beforeEach(() => {
 
 afterEach(() => {
   // Clean up after each test
-  if (testElement && testElement.parentNode) {
+  if (testElement?.parentNode) {
     testElement.parentNode.removeChild(testElement);
   }
   // Clear any existing elements

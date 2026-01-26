@@ -206,10 +206,10 @@
           typeSpeed: 60,
           backspaceSpeed: 25, // 快速退格
           cursor: { enabled: true, char: '▌', blink: true },
-          onBackspaceStart: (index, text) => {
+          onBackspaceStart: (_index, text) => {
             updateStatus('backspace-status', `开始退格: "${text}"`);
           },
-          onBackspaceEnd: (index, text) => {
+          onBackspaceEnd: (_index, text) => {
             updateStatus('backspace-status', `退格完成: "${text}"`);
           },
         });

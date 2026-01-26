@@ -279,7 +279,7 @@
       // 1. 光标闪烁速度控制
       window.startBlinkSpeed = () => {
         if (blinkSpeedController) blinkSpeedController.destroy();
-        const speed = parseInt(document.getElementById('blinkSpeedSlider').value);
+        const speed = parseInt(document.getElementById('blinkSpeedSlider').value, 10);
         blinkSpeedController = createTyped('#blink-speed-demo', {
           strings: ['闪烁速度控制演示', '可以动态调整速度'],
           typeSpeed: 60,
@@ -296,7 +296,7 @@
 
       window.updateBlinkSpeed = () => {
         if (blinkSpeedController) {
-          const speed = parseInt(document.getElementById('blinkSpeedSlider').value);
+          const speed = parseInt(document.getElementById('blinkSpeedSlider').value, 10);
           blinkSpeedController.setCursorBlinkSpeed(speed);
           updateStatus('blink-speed-status', `速度更新为: ${speed}ms`);
         }
@@ -319,7 +319,7 @@
       // 2. 有限闪烁次数
       window.startBlinkCount = () => {
         if (blinkCountController) blinkCountController.destroy();
-        const count = parseInt(document.getElementById('blinkCountSlider').value);
+        const count = parseInt(document.getElementById('blinkCountSlider').value, 10);
         blinkCountController = createTyped('#blink-count-demo', {
           strings: ['有限闪烁次数演示', `光标将闪烁 ${count} 次后停止`],
           typeSpeed: 60,
@@ -427,7 +427,7 @@
       // 5. 速度变化百分比
       window.startVariance = () => {
         if (varianceController) varianceController.destroy();
-        const variance = parseInt(document.getElementById('varianceSlider').value);
+        const variance = parseInt(document.getElementById('varianceSlider').value, 10);
         varianceController = createTyped('#variance-demo', {
           strings: ['速度变化演示', '打字速度随机变化', '模拟真实打字习惯'],
           typeSpeed: 60,
@@ -575,15 +575,15 @@
 
       // 滑块事件监听
       document.getElementById('blinkSpeedSlider').addEventListener('input', (e) => {
-        document.getElementById('blinkSpeedValue').textContent = e.target.value + 'ms';
+        document.getElementById('blinkSpeedValue').textContent = `${e.target.value}ms`;
       });
 
       document.getElementById('blinkCountSlider').addEventListener('input', (e) => {
-        document.getElementById('blinkCountValue').textContent = e.target.value + '次';
+        document.getElementById('blinkCountValue').textContent = `${e.target.value}次`;
       });
 
       document.getElementById('varianceSlider').addEventListener('input', (e) => {
-        document.getElementById('varianceValue').textContent = e.target.value + '%';
+        document.getElementById('varianceValue').textContent = `${e.target.value}%`;
       });
 
       // 辅助函数
