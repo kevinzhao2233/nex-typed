@@ -17,7 +17,11 @@ export interface CursorOptions {
   blinkSpeed?: number; // 闪烁速度（ms），默认 500ms
   blinkCount?: number; // 闪烁次数，0 表示无限
   hideWhenComplete?: boolean; // 完成时隐藏光标
-  style?: string | Record<string, string>; // 光标样式（CSS类名或内联样式）
+  style?: string | Partial<
+    Pick<CSSStyleDeclaration, {
+      [K in keyof CSSStyleDeclaration]: CSSStyleDeclaration[K] extends string ? K : never
+    }[keyof CSSStyleDeclaration]>
+  >; // 光标样式（CSS类名或内联样式）
 }
 
 export interface CursorController {
