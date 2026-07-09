@@ -1,27 +1,34 @@
-import { afterEach, beforeEach, expect, test } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createTyped } from '../src';
 
-// Mock DOM environment for testing
 let testElement: HTMLElement;
 
 beforeEach(() => {
-  // Create a test element for each test
+  vi.useFakeTimers();
   testElement = document.createElement('div');
   testElement.setAttribute('id', 'test-target');
   document.body.appendChild(testElement);
 });
 
 afterEach(() => {
-  // Clean up after each test
+  vi.useRealTimers();
   if (testElement?.parentNode) {
     testElement.parentNode.removeChild(testElement);
   }
-  // Clear any existing elements
   const existingRoot = document.querySelector('[data-nex-typed-root]');
   if (existingRoot) {
     existingRoot.remove();
   }
 });
+
+function getTextContent(): string {
+  const text = testElement.querySelector('[data-nex-typed-text]');
+  return text?.textContent ?? '';
+}
+
+function getCursor(): Element | null {
+  return testElement.querySelector('[data-nex-typed-cursor]');
+}
 
 test('createTyped should create typing animation controller', () => {
   const controller = createTyped(testElement, {
@@ -35,6 +42,14 @@ test('createTyped should create typing animation controller', () => {
   expect(controller.pause).toBeInstanceOf(Function);
   expect(controller.resume).toBeInstanceOf(Function);
   expect(controller.destroy).toBeInstanceOf(Function);
+  expect(controller.backspace).toBeInstanceOf(Function);
+  expect(controller.deleteString).toBeInstanceOf(Function);
+  expect(controller.skip).toBeInstanceOf(Function);
+  expect(controller.goTo).toBeInstanceOf(Function);
+  expect(controller.getTypeSpeed).toBeInstanceOf(Function);
+  expect(controller.setSpeed).toBeInstanceOf(Function);
+  expect(controller.getCursorBlinkSpeed).toBeInstanceOf(Function);
+  expect(controller.setCursorBlinkSpeed).toBeInstanceOf(Function);
 });
 
 test('createTyped should render initial DOM structure', () => {
@@ -46,12 +61,11 @@ test('createTyped should render initial DOM structure', () => {
   const root = testElement.querySelector('[data-nex-typed-root]');
   const text = testElement.querySelector('[data-nex-typed-text]');
 
-  expect(root).toBeDefined();
-  expect(text).toBeDefined();
+  expect(root).not.toBeNull();
+  expect(text).not.toBeNull();
 });
 
 test('createTyped should handle string selector target', () => {
-  // Create element with ID for selector test
   const selectorElement = document.createElement('div');
   selectorElement.setAttribute('id', 'selector-test');
   document.body.appendChild(selectorElement);
@@ -62,8 +76,6 @@ test('createTyped should handle string selector target', () => {
   });
 
   expect(controller).toBeDefined();
-
-  // Clean up
   selectorElement.remove();
 });
 
@@ -76,9 +88,124 @@ test('createTyped should throw error for invalid selector', () => {
   }).toThrow('Target not found: #non-existent-element');
 });
 
-test('createTyped should handle cursor configuration', () => {
+test('typing animation should type characters one by one after start', () => {
   const controller = createTyped(testElement, {
-    strings: ['With cursor'],
+    strings: ['Hi'],
+    typeSpeed: 50,
+  });
+
+  controller.start();
+  expect(getTextContent()).toBe('');
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('H');
+
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('Hi');
+});
+
+test('typing animation should respect startDelay', () => {
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
+    typeSpeed: 50,
+    startDelay: 200,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(100);
+  expect(getTextContent()).toBe('');
+
+  vi.advanceTimersByTime(100);
+  expect(getTextContent()).toBe('H');
+
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('Hi');
+});
+
+test('typing animation should progress through multiple strings', () => {
+  const controller = createTyped(testElement, {
+    strings: ['AB', 'CD'],
+    typeSpeed: 50,
+    stringPauseDelay: 100,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
+
+  vi.advanceTimersByTime(50);
+  vi.advanceTimersByTime(100);
+  expect(getTextContent()).toBe('C');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('CD');
+});
+
+test('onBegin callback should fire on start', () => {
+  const onBegin = vi.fn();
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
+    typeSpeed: 50,
+    onBegin,
+  });
+
+  controller.start();
+  expect(onBegin).toHaveBeenCalledTimes(1);
+});
+
+test('onStringStart callback should fire for each string', () => {
+  const onStringStart = vi.fn();
+  const controller = createTyped(testElement, {
+    strings: ['AB', 'CD'],
+    typeSpeed: 50,
+    stringPauseDelay: 100,
+    onStringStart,
+  });
+
+  controller.start();
+  expect(onStringStart).toHaveBeenCalledTimes(1);
+  expect(onStringStart).toHaveBeenCalledWith(0, 'AB');
+
+  vi.advanceTimersByTime(200);
+  expect(onStringStart).toHaveBeenCalledTimes(2);
+  expect(onStringStart).toHaveBeenCalledWith(1, 'CD');
+});
+
+test('onStringEnd callback should fire when a string is fully typed', () => {
+  const onStringEnd = vi.fn();
+  const controller = createTyped(testElement, {
+    strings: ['AB'],
+    typeSpeed: 50,
+    onStringEnd,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(100);
+  expect(onStringEnd).toHaveBeenCalledTimes(1);
+  expect(onStringEnd).toHaveBeenCalledWith(0, 'AB');
+});
+
+test('onComplete callback should fire when all strings are typed', () => {
+  const onComplete = vi.fn();
+  const controller = createTyped(testElement, {
+    strings: ['AB'],
+    typeSpeed: 50,
+    onComplete,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(100);
+  expect(onComplete).toHaveBeenCalledTimes(1);
+});
+
+test('cursor should be created when enabled and start is called', () => {
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
     typeSpeed: 50,
     cursor: {
       enabled: true,
@@ -87,593 +214,734 @@ test('createTyped should handle cursor configuration', () => {
     },
   });
 
-  // Start the animation to ensure cursor is mounted
+  expect(getCursor()).toBeNull();
+
   controller.start();
 
-  const cursor = testElement.querySelector('[data-nex-typed-cursor]');
-  expect(cursor).toBeDefined();
+  const cursor = getCursor();
+  expect(cursor).not.toBeNull();
   expect(cursor?.textContent).toBe('_');
 });
 
-test('createTyped should handle cursor disabled', () => {
-  createTyped(testElement, {
-    strings: ['No cursor'],
+test('cursor should not be created when disabled', () => {
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
     typeSpeed: 50,
     cursor: {
       enabled: false,
     },
   });
 
-  const cursor = testElement.querySelector('[data-nex-typed-cursor]');
-  expect(cursor).toBeNull();
+  controller.start();
+  expect(getCursor()).toBeNull();
 });
 
-test('createTyped should handle startDelay option', () => {
+test('cursor should blink at specified speed', () => {
   const controller = createTyped(testElement, {
-    strings: ['Delayed start'],
+    strings: ['Hi'],
     typeSpeed: 50,
-    startDelay: 100,
+    cursor: {
+      enabled: true,
+      char: '|',
+      blink: true,
+      blinkSpeed: 300,
+    },
   });
 
-  expect(controller).toBeDefined();
-  // The actual delay testing would require async testing with timers
+  controller.start();
+
+  const cursor = getCursor() as HTMLElement;
+  expect(cursor.style.visibility).toBe('visible');
+
+  vi.advanceTimersByTime(300);
+  expect(cursor.style.visibility).toBe('hidden');
+
+  vi.advanceTimersByTime(300);
+  expect(cursor.style.visibility).toBe('visible');
 });
 
-test('createTyped should handle multiple strings', () => {
+test('cursor should stop blinking after blinkCount', () => {
   const controller = createTyped(testElement, {
-    strings: ['First string', 'Second string', 'Third string'],
+    strings: ['Hi'],
+    typeSpeed: 50,
+    cursor: {
+      enabled: true,
+      char: '|',
+      blink: true,
+      blinkSpeed: 100,
+      blinkCount: 3,
+    },
+  });
+
+  controller.start();
+
+  const cursor = getCursor() as HTMLElement;
+
+  vi.advanceTimersByTime(100);
+  expect(cursor.style.visibility).toBe('hidden');
+  vi.advanceTimersByTime(100);
+  expect(cursor.style.visibility).toBe('visible');
+  vi.advanceTimersByTime(100);
+  expect(cursor.style.visibility).toBe('hidden');
+  vi.advanceTimersByTime(100);
+  expect(cursor.style.visibility).toBe('visible');
+  vi.advanceTimersByTime(100);
+  expect(cursor.style.visibility).toBe('visible');
+});
+
+test('cursor should hide when complete if hideWhenComplete is true', () => {
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
+    typeSpeed: 50,
+    cursor: {
+      enabled: true,
+      char: '|',
+      blink: true,
+      hideWhenComplete: true,
+    },
+  });
+
+  controller.start();
+
+  const cursor = getCursor() as HTMLElement;
+  expect(cursor.style.visibility).toBe('visible');
+
+  vi.advanceTimersByTime(100);
+  expect(cursor.style.visibility).toBe('hidden');
+});
+
+test('cursor style as string should add CSS class', () => {
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
+    typeSpeed: 50,
+    cursor: {
+      enabled: true,
+      char: '|',
+      style: 'custom-cursor-class',
+    },
+  });
+
+  controller.start();
+
+  const cursor = getCursor() as HTMLElement;
+  expect(cursor.classList.contains('custom-cursor-class')).toBe(true);
+});
+
+test('cursor style as object should apply inline styles', () => {
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
+    typeSpeed: 50,
+    cursor: {
+      enabled: true,
+      char: '|',
+      style: { color: 'red', fontWeight: 'bold' },
+    },
+  });
+
+  controller.start();
+
+  const cursor = getCursor() as HTMLElement;
+  expect(cursor.style.color).toBe('red');
+  expect(cursor.style.fontWeight).toBe('bold');
+});
+
+test('pause should stop typing and hide cursor', () => {
+  const controller = createTyped(testElement, {
+    strings: ['ABCDE'],
+    typeSpeed: 50,
+    cursor: {
+      enabled: true,
+      char: '|',
+      blink: true,
+    },
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
+
+  controller.pause();
+  const cursor = getCursor() as HTMLElement;
+  expect(cursor.style.visibility).toBe('hidden');
+
+  vi.advanceTimersByTime(200);
+  expect(getTextContent()).toBe('AB');
+});
+
+test('resume should continue typing from paused position', () => {
+  const controller = createTyped(testElement, {
+    strings: ['ABCDE'],
+    typeSpeed: 50,
+    cursor: {
+      enabled: true,
+      char: '|',
+      blink: true,
+    },
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
+
+  controller.pause();
+  vi.advanceTimersByTime(200);
+  expect(getTextContent()).toBe('AB');
+
+  controller.resume();
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('ABC');
+
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('ABCD');
+});
+
+test('onPause and onResume callbacks should fire', () => {
+  const onPause = vi.fn();
+  const onResume = vi.fn();
+  const controller = createTyped(testElement, {
+    strings: ['ABCDE'],
+    typeSpeed: 50,
+    onPause,
+    onResume,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+
+  controller.pause();
+  expect(onPause).toHaveBeenCalledTimes(1);
+  expect(onPause).toHaveBeenCalledWith(0, 1);
+
+  controller.resume();
+  expect(onResume).toHaveBeenCalledTimes(1);
+  expect(onResume).toHaveBeenCalledWith(0, 1);
+});
+
+test('stop should halt animation', () => {
+  const controller = createTyped(testElement, {
+    strings: ['ABCDE'],
     typeSpeed: 50,
   });
 
-  expect(controller).toBeDefined();
-  // More comprehensive testing would require async testing
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
+
+  controller.stop();
+  vi.advanceTimersByTime(500);
+  expect(getTextContent()).toBe('AB');
 });
 
-test('createTyped should handle callback functions', () => {
+test('destroy should remove root element from DOM', () => {
   const controller = createTyped(testElement, {
-    strings: ['Test'],
-    typeSpeed: 50,
-    onBegin: () => {},
-    onStringStart: () => {},
-    onStringEnd: () => {},
-    onComplete: () => {},
-  });
-
-  expect(controller).toBeDefined();
-  // Callbacks would be tested during actual animation
-});
-
-test('createTyped should handle pause and resume', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Pause test'],
+    strings: ['Hi'],
     typeSpeed: 50,
   });
 
-  // These methods should exist and be callable
-  expect(controller.pause).toBeInstanceOf(Function);
-  expect(controller.resume).toBeInstanceOf(Function);
+  expect(testElement.querySelector('[data-nex-typed-root]')).not.toBeNull();
 
-  // Calling them should not throw errors
-  expect(() => controller.pause()).not.toThrow();
-  expect(() => controller.resume()).not.toThrow();
+  controller.destroy();
+  expect(testElement.querySelector('[data-nex-typed-root]')).toBeNull();
 });
 
-test('createTyped should handle stop and destroy', () => {
+test('backspace should remove characters one by one', () => {
   const controller = createTyped(testElement, {
-    strings: ['Stop test'],
+    strings: ['ABC'],
+    typeSpeed: 50,
+    backspaceSpeed: 30,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(100);
+  expect(getTextContent()).toBe('ABC');
+
+  controller.backspace();
+  vi.advanceTimersByTime(30);
+  expect(getTextContent()).toBe('AB');
+  vi.advanceTimersByTime(30);
+  expect(getTextContent()).toBe('A');
+  vi.advanceTimersByTime(30);
+  expect(getTextContent()).toBe('');
+});
+
+test('onBackspaceStart and onBackspaceEnd callbacks should fire', () => {
+  const onBackspaceStart = vi.fn();
+  const onBackspaceEnd = vi.fn();
+  const controller = createTyped(testElement, {
+    strings: ['ABCDE'],
+    typeSpeed: 50,
+    backspaceSpeed: 30,
+    onBackspaceStart,
+    onBackspaceEnd,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+
+  controller.backspace();
+  expect(onBackspaceStart).toHaveBeenCalledTimes(1);
+  expect(onBackspaceStart).toHaveBeenCalledWith(0, 'ABCDE');
+
+  vi.advanceTimersByTime(30);
+  expect(getTextContent()).toBe('');
+  expect(onBackspaceEnd).toHaveBeenCalledTimes(1);
+  expect(onBackspaceEnd).toHaveBeenCalledWith(0, 'ABCDE');
+});
+
+test('deleteString should remove all characters and advance to next string', () => {
+  const controller = createTyped(testElement, {
+    strings: ['AB', 'CD'],
+    typeSpeed: 50,
+    backspaceSpeed: 30,
+    deleteStrings: true,
+    deleteDelay: 100,
+    stringPauseDelay: 50,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
+
+  vi.advanceTimersByTime(50);
+  vi.advanceTimersByTime(100);
+  vi.advanceTimersByTime(30);
+  expect(getTextContent()).toBe('A');
+  vi.advanceTimersByTime(30);
+  expect(getTextContent()).toBe('');
+
+  vi.advanceTimersByTime(50);
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('C');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('CD');
+});
+
+test('loop should restart from beginning after completing all strings', () => {
+  const onLoop = vi.fn();
+  const controller = createTyped(testElement, {
+    strings: ['AB'],
+    typeSpeed: 50,
+    loop: true,
+    stringPauseDelay: 100,
+    onLoop,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
+
+  vi.advanceTimersByTime(50);
+  expect(onLoop).toHaveBeenCalledTimes(1);
+
+  vi.advanceTimersByTime(100);
+  expect(getTextContent()).toBe('A');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
+});
+
+test('loop with shuffle should reshuffle each loop iteration', () => {
+  const onShuffle = vi.fn();
+  const onLoop = vi.fn();
+  const controller = createTyped(testElement, {
+    strings: ['AB'],
+    typeSpeed: 50,
+    loop: true,
+    shuffle: true,
+    stringPauseDelay: 50,
+    onShuffle,
+    onLoop,
+  });
+
+  controller.start();
+  expect(onShuffle).toHaveBeenCalledTimes(1);
+
+  vi.advanceTimersByTime(100);
+  expect(onLoop).toHaveBeenCalledTimes(1);
+  expect(onShuffle).toHaveBeenCalledTimes(2);
+});
+
+test('skip should immediately show full current string', () => {
+  const controller = createTyped(testElement, {
+    strings: ['ABCDE', 'FGH'],
+    typeSpeed: 50,
+    stringPauseDelay: 50,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+
+  controller.skip();
+  expect(getTextContent()).toBe('ABCDE');
+
+  vi.advanceTimersByTime(50);
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('F');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('FG');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('FGH');
+});
+
+test('goTo should jump to specified string index', () => {
+  const controller = createTyped(testElement, {
+    strings: ['AB', 'CD', 'EF'],
+    typeSpeed: 50,
+    stringPauseDelay: 50,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+
+  controller.goTo(2);
+  expect(getTextContent()).toBe('');
+
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('E');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('EF');
+});
+
+test('goTo should ignore invalid indices', () => {
+  const controller = createTyped(testElement, {
+    strings: ['AB'],
     typeSpeed: 50,
   });
 
-  expect(controller.stop).toBeInstanceOf(Function);
-  expect(controller.destroy).toBeInstanceOf(Function);
+  controller.start();
 
-  // Calling them should not throw errors
-  expect(() => controller.stop()).not.toThrow();
-  expect(() => controller.destroy()).not.toThrow();
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
 
-  // After destroy, root element should be removed
-  const root = testElement.querySelector('[data-nex-typed-root]');
-  expect(root).toBeNull();
+  controller.goTo(-1);
+  controller.goTo(5);
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
 });
 
-test('createTyped should handle empty strings array', () => {
+test('getTypeSpeed should return current speed', () => {
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
+    typeSpeed: 75,
+  });
+
+  expect(controller.getTypeSpeed()).toBe(75);
+});
+
+test('setSpeed should update typing speed', () => {
+  const controller = createTyped(testElement, {
+    strings: ['ABCDE'],
+    typeSpeed: 100,
+  });
+
+  expect(controller.getTypeSpeed()).toBe(100);
+
+  controller.setSpeed(50);
+  expect(controller.getTypeSpeed()).toBe(50);
+});
+
+test('getCursorBlinkSpeed should return configured blink speed', () => {
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
+    typeSpeed: 50,
+    cursor: {
+      enabled: true,
+      char: '|',
+      blink: true,
+      blinkSpeed: 300,
+    },
+  });
+
+  expect(controller.getCursorBlinkSpeed()).toBe(300);
+});
+
+test('setCursorBlinkSpeed should update blink speed', () => {
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
+    typeSpeed: 50,
+    cursor: {
+      enabled: true,
+      char: '|',
+      blink: true,
+      blinkSpeed: 300,
+    },
+  });
+
+  controller.setCursorBlinkSpeed(200);
+  expect(controller.getCursorBlinkSpeed()).toBe(200);
+});
+
+test('empty strings array should not crash', () => {
   const controller = createTyped(testElement, {
     strings: [],
     typeSpeed: 50,
   });
 
   expect(controller).toBeDefined();
-  // Should handle gracefully without crashing
+  controller.start();
+  vi.advanceTimersByTime(1000);
+  expect(getTextContent()).toBe('');
 });
 
-test('createTyped should use default typeSpeed when not specified', () => {
+test('default typeSpeed should be 50', () => {
   const controller = createTyped(testElement, {
-    strings: ['Default speed'],
-    // typeSpeed not specified, should default to 50
+    strings: ['Hi'],
   });
 
-  expect(controller).toBeDefined();
+  expect(controller.getTypeSpeed()).toBe(50);
 });
 
-test('createTyped should handle cursor with default blink', () => {
-  createTyped(testElement, {
-    strings: ['Default blink'],
-    typeSpeed: 50,
+test('default cursor blinkSpeed should be 500', () => {
+  const controller = createTyped(testElement, {
+    strings: ['Hi'],
     cursor: {
       enabled: true,
       char: '|',
-      // blink not specified, should default to true
+      blink: true,
     },
   });
 
-  const cursor = testElement.querySelector('[data-nex-typed-cursor]');
-  expect(cursor).toBeDefined();
+  expect(controller.getCursorBlinkSpeed()).toBe(500);
 });
 
-test('createTyped should handle cursor with custom blink disabled', () => {
+test('pauseOnPunctuation should add extra delay on punctuation', () => {
+  const onStringEnd = vi.fn();
+  const controller = createTyped(testElement, {
+    strings: ['A.'],
+    typeSpeed: 50,
+    pauseOnPunctuation: true,
+    onStringEnd,
+  });
+
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+
+  vi.advanceTimersByTime(250);
+  expect(getTextContent()).toBe('A.');
+
+  vi.advanceTimersByTime(50);
+  expect(onStringEnd).toHaveBeenCalledTimes(1);
+});
+
+test('shuffle should randomize string order and call onShuffle', () => {
+  const onShuffle = vi.fn();
   createTyped(testElement, {
-    strings: ['No blink'],
+    strings: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
     typeSpeed: 50,
-    cursor: {
-      enabled: true,
-      char: '|',
-      blink: false,
-    },
+    shuffle: true,
+    onShuffle,
   });
 
-  const cursor = testElement.querySelector('[data-nex-typed-cursor]');
-  expect(cursor).toBeDefined();
+  expect(onShuffle).toHaveBeenCalledTimes(1);
+  const [original, shuffled] = onShuffle.mock.calls[0];
+  expect(original).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']);
+  expect(shuffled.length).toBe(10);
+  expect(shuffled.sort()).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']);
 });
 
-// 新增测试：退格/删除功能
-test('createTyped should have backspace method', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Test backspace'],
-    typeSpeed: 50,
-  });
+test('speedProfile options should be accepted', () => {
+  const profiles: Array<'linear' | 'easeIn' | 'easeOut' | 'easeInOut'> = ['linear', 'easeIn', 'easeOut', 'easeInOut'];
 
-  expect(controller.backspace).toBeInstanceOf(Function);
-  // Should not throw when called
-  expect(() => controller.backspace()).not.toThrow();
+  for (const profile of profiles) {
+    const el = document.createElement('div');
+    document.body.appendChild(el);
+
+    const controller = createTyped(el, {
+      strings: ['Test'],
+      typeSpeed: 50,
+      speedProfile: profile,
+    });
+
+    expect(controller).toBeDefined();
+    el.remove();
+  }
 });
 
-test('createTyped should have deleteString method', () => {
+test('typeSpeedVariance option should be accepted', () => {
   const controller = createTyped(testElement, {
-    strings: ['Test delete'],
+    strings: ['Test'],
     typeSpeed: 50,
-  });
-
-  expect(controller.deleteString).toBeInstanceOf(Function);
-  // Should not throw when called
-  expect(() => controller.deleteString()).not.toThrow();
-});
-
-test('createTyped should handle backspaceSpeed option', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Backspace test'],
-    typeSpeed: 50,
-    backspaceSpeed: 20,
+    typeSpeedVariance: 20,
   });
 
   expect(controller).toBeDefined();
-  // backspaceSpeed should be accepted without error
 });
 
-test('createTyped should handle deleteStrings option', () => {
+test('humanTypeDelay option should be accepted', () => {
   const controller = createTyped(testElement, {
-    strings: ['Delete test'],
-    typeSpeed: 50,
-    deleteStrings: true,
-    deleteDelay: 500,
-  });
-
-  expect(controller).toBeDefined();
-  // deleteStrings and deleteDelay should be accepted without error
-});
-
-test('createTyped should have loop option', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Loop test'],
-    typeSpeed: 50,
-    loop: true,
-  });
-
-  expect(controller).toBeDefined();
-  // loop option should be accepted without error
-});
-
-test('createTyped should have humanTypeDelay option', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Human typing'],
+    strings: ['Test'],
     typeSpeed: 50,
     humanTypeDelay: { min: 30, max: 100 },
   });
 
   expect(controller).toBeDefined();
-  // humanTypeDelay should be accepted without error
 });
 
-test('createTyped should have stringPauseDelay option', () => {
+test('combined options should work together', () => {
+  const onBegin = vi.fn();
+  const onStringStart = vi.fn();
+  const onStringEnd = vi.fn();
+  const onComplete = vi.fn();
+
   const controller = createTyped(testElement, {
-    strings: ['String pause'],
+    strings: ['AB', 'CD'],
     typeSpeed: 50,
-    stringPauseDelay: 1000,
+    startDelay: 100,
+    stringPauseDelay: 50,
+    cursor: {
+      enabled: true,
+      char: '_',
+      blink: true,
+    },
+    onBegin,
+    onStringStart,
+    onStringEnd,
+    onComplete,
   });
 
-  expect(controller).toBeDefined();
-  // stringPauseDelay should be accepted without error
+  controller.start();
+  expect(onBegin).toHaveBeenCalledTimes(1);
+
+  vi.advanceTimersByTime(100);
+  expect(getTextContent()).toBe('A');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
+
+  vi.advanceTimersByTime(50);
+  expect(onStringEnd).toHaveBeenCalledWith(0, 'AB');
+
+  vi.advanceTimersByTime(50);
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('C');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('CD');
+
+  vi.advanceTimersByTime(50);
+  expect(onComplete).toHaveBeenCalledTimes(1);
 });
 
-test('createTyped should have pauseOnPunctuation option', () => {
+test('deleteStrings with loop should cycle through strings', () => {
+  const onLoop = vi.fn();
+  const onBackspaceEnd = vi.fn();
   const controller = createTyped(testElement, {
-    strings: ['Punctuation pause.'],
+    strings: ['AB'],
     typeSpeed: 50,
-    pauseOnPunctuation: true,
-  });
-
-  expect(controller).toBeDefined();
-  // pauseOnPunctuation should be accepted without error
-});
-
-test('createTyped should have skip method', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Skip test'],
-    typeSpeed: 50,
-  });
-
-  expect(controller.skip).toBeInstanceOf(Function);
-  // Should not throw when called
-  expect(() => controller.skip()).not.toThrow();
-});
-
-test('createTyped should have goTo method', () => {
-  const controller = createTyped(testElement, {
-    strings: ['First', 'Second', 'Third'],
-    typeSpeed: 50,
-  });
-
-  expect(controller.goTo).toBeInstanceOf(Function);
-  // Should not throw when called with valid index
-  expect(() => controller.goTo(1)).not.toThrow();
-});
-
-test('createTyped should have getTypeSpeed method', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Speed test'],
-    typeSpeed: 75,
-  });
-
-  expect(controller.getTypeSpeed).toBeInstanceOf(Function);
-  expect(controller.getTypeSpeed()).toBe(75);
-});
-
-test('createTyped should have setSpeed method', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Set speed test'],
-    typeSpeed: 50,
-  });
-
-  expect(controller.setSpeed).toBeInstanceOf(Function);
-  // Should not throw when called
-  expect(() => controller.setSpeed(100)).not.toThrow();
-  // Speed should be updated
-  expect(controller.getTypeSpeed()).toBe(100);
-});
-
-test('createTyped should handle onBackspaceStart and onBackspaceEnd callbacks', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Backspace callback'],
-    typeSpeed: 50,
-    onBackspaceStart: () => {},
-    onBackspaceEnd: () => {},
-  });
-
-  expect(controller).toBeDefined();
-  // Callbacks would be tested during actual backspace operation
-});
-
-test('createTyped should handle onLoop callback', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Loop callback'],
-    typeSpeed: 50,
-    loop: true,
-    onLoop: () => {},
-  });
-
-  expect(controller).toBeDefined();
-  // Callback would be tested during actual loop operation
-});
-
-test('createTyped should handle multiple options together', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Complex test'],
-    typeSpeed: 60,
-    startDelay: 200,
-    backspaceSpeed: 25,
+    backspaceSpeed: 30,
     deleteStrings: true,
-    deleteDelay: 800,
+    deleteDelay: 50,
     loop: true,
-    humanTypeDelay: { min: 40, max: 80 },
-    stringPauseDelay: 600,
-    pauseOnPunctuation: true,
-    cursor: {
-      enabled: true,
-      char: '▌',
-      blink: true,
-    },
-    onBegin: () => {},
-    onStringStart: () => {},
-    onStringEnd: () => {},
-    onComplete: () => {},
-    onPause: () => {},
-    onResume: () => {},
-    onBackspaceStart: () => {},
-    onBackspaceEnd: () => {},
-    onLoop: () => {},
+    stringPauseDelay: 50,
+    onLoop,
+    onBackspaceEnd,
   });
 
-  expect(controller).toBeDefined();
-  expect(controller.start).toBeInstanceOf(Function);
-  expect(controller.backspace).toBeInstanceOf(Function);
-  expect(controller.deleteString).toBeInstanceOf(Function);
-  expect(controller.skip).toBeInstanceOf(Function);
-  expect(controller.goTo).toBeInstanceOf(Function);
-  expect(controller.getTypeSpeed).toBeInstanceOf(Function);
-  expect(controller.setSpeed).toBeInstanceOf(Function);
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
+
+  vi.advanceTimersByTime(50);
+  vi.advanceTimersByTime(50);
+  vi.advanceTimersByTime(30);
+  expect(getTextContent()).toBe('A');
+  vi.advanceTimersByTime(30);
+  expect(getTextContent()).toBe('');
+  vi.advanceTimersByTime(30);
+  expect(onBackspaceEnd).toHaveBeenCalledTimes(1);
+  expect(onLoop).toHaveBeenCalledTimes(1);
+
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('A');
+  vi.advanceTimersByTime(50);
+  expect(getTextContent()).toBe('AB');
 });
 
-// Phase 3: 光标配置增强测试
-test('createTyped should handle cursor blinkSpeed option', () => {
-  createTyped(testElement, {
-    strings: ['Blink speed test'],
-    typeSpeed: 50,
-    cursor: {
-      enabled: true,
-      char: '|',
-      blink: true,
-      blinkSpeed: 300, // 自定义闪烁速度
-    },
-  });
 
-  const cursor = testElement.querySelector('[data-nex-typed-cursor]');
-  expect(cursor).toBeDefined();
-});
 
-test('createTyped should handle cursor blinkCount option', () => {
-  createTyped(testElement, {
-    strings: ['Blink count test'],
-    typeSpeed: 50,
-    cursor: {
-      enabled: true,
-      char: '|',
-      blink: true,
-      blinkCount: 5, // 闪烁5次后停止
-    },
-  });
-
-  const cursor = testElement.querySelector('[data-nex-typed-cursor]');
-  expect(cursor).toBeDefined();
-});
-
-test('createTyped should handle cursor hideWhenComplete option', () => {
+test('onLoop callback should receive current index', () => {
+  const onLoop = vi.fn();
   const controller = createTyped(testElement, {
-    strings: ['Hide when complete'],
+    strings: ['AB'],
     typeSpeed: 50,
-    cursor: {
-      enabled: true,
-      char: '|',
-      blink: true,
-      hideWhenComplete: true, // 完成时隐藏光标
-    },
+    loop: true,
+    stringPauseDelay: 50,
+    onLoop,
   });
 
-  expect(controller).toBeDefined();
-  // 光标应该在完成时自动隐藏
+  controller.start();
+
+  vi.advanceTimersByTime(100);
+  expect(onLoop).toHaveBeenCalledWith(0);
 });
 
-test('createTyped should handle cursor style as string (CSS class)', () => {
-  createTyped(testElement, {
-    strings: ['Style test'],
-    typeSpeed: 50,
-    cursor: {
-      enabled: true,
-      char: '|',
-      style: 'custom-cursor-class', // CSS类名
-    },
-  });
-
-  const cursor = testElement.querySelector('[data-nex-typed-cursor]');
-  expect(cursor).toBeDefined();
-  // 注意：在测试环境中可能无法验证CSS类应用
-});
-
-test('createTyped should handle cursor style as object (inline styles)', () => {
-  createTyped(testElement, {
-    strings: ['Style test'],
-    typeSpeed: 50,
-    cursor: {
-      enabled: true,
-      char: '|',
-      style: { color: 'red', fontWeight: 'bold' }, // 内联样式对象
-    },
-  });
-
-  const cursor = testElement.querySelector('[data-nex-typed-cursor]');
-  expect(cursor).toBeDefined();
-  // 注意：在测试环境中可能无法验证样式应用
-});
-
-test('createTyped should have getCursorBlinkSpeed method', () => {
+test('backspace should not work when paused', () => {
   const controller = createTyped(testElement, {
-    strings: ['Blink speed test'],
+    strings: ['ABC'],
     typeSpeed: 50,
-    cursor: {
-      enabled: true,
-      char: '|',
-      blink: true,
-      blinkSpeed: 300,
-    },
+    backspaceSpeed: 30,
   });
 
-  expect(controller.getCursorBlinkSpeed).toBeInstanceOf(Function);
-  expect(controller.getCursorBlinkSpeed()).toBe(300);
+  controller.start();
+
+  vi.advanceTimersByTime(100);
+  expect(getTextContent()).toBe('ABC');
+
+  controller.pause();
+  controller.backspace();
+  vi.advanceTimersByTime(100);
+  expect(getTextContent()).toBe('ABC');
 });
 
-test('createTyped should have setCursorBlinkSpeed method', () => {
+test('skip with deleteStrings should trigger deletion after skip', () => {
+  const onBackspaceStart = vi.fn();
   const controller = createTyped(testElement, {
-    strings: ['Blink speed test'],
+    strings: ['ABC', 'DE'],
     typeSpeed: 50,
-    cursor: {
-      enabled: true,
-      char: '|',
-      blink: true,
-      blinkSpeed: 300,
-    },
-  });
-
-  expect(controller.setCursorBlinkSpeed).toBeInstanceOf(Function);
-  // Should not throw when called
-  expect(() => controller.setCursorBlinkSpeed(200)).not.toThrow();
-});
-
-// Phase 3: 速度变化与随机化测试
-test('createTyped should handle typeSpeedVariance option', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Variance test'],
-    typeSpeed: 50,
-    typeSpeedVariance: 20, // ±20% 速度变化
-  });
-
-  expect(controller).toBeDefined();
-  // typeSpeedVariance should be accepted without error
-});
-
-test('createTyped should handle shuffle option', () => {
-  const controller = createTyped(testElement, {
-    strings: ['First', 'Second', 'Third', 'Fourth'],
-    typeSpeed: 50,
-    shuffle: true,
-    onShuffle: () => {},
-  });
-
-  expect(controller).toBeDefined();
-  // Shuffle should be accepted without error
-  // The callback would be tested during actual initialization
-});
-
-test('createTyped should handle speedProfile option - linear', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Linear profile'],
-    typeSpeed: 50,
-    speedProfile: 'linear',
-  });
-
-  expect(controller).toBeDefined();
-  // linear profile should be accepted without error
-});
-
-test('createTyped should handle speedProfile option - easeIn', () => {
-  const controller = createTyped(testElement, {
-    strings: ['EaseIn profile'],
-    typeSpeed: 50,
-    speedProfile: 'easeIn',
-  });
-
-  expect(controller).toBeDefined();
-  // easeIn profile should be accepted without error
-});
-
-test('createTyped should handle speedProfile option - easeOut', () => {
-  const controller = createTyped(testElement, {
-    strings: ['EaseOut profile'],
-    typeSpeed: 50,
-    speedProfile: 'easeOut',
-  });
-
-  expect(controller).toBeDefined();
-  // easeOut profile should be accepted without error
-});
-
-test('createTyped should handle speedProfile option - easeInOut', () => {
-  const controller = createTyped(testElement, {
-    strings: ['EaseInOut profile'],
-    typeSpeed: 50,
-    speedProfile: 'easeInOut',
-  });
-
-  expect(controller).toBeDefined();
-  // easeInOut profile should be accepted without error
-});
-
-test('createTyped should handle combined speed options', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Combined speed test'],
-    typeSpeed: 60,
-    typeSpeedVariance: 15,
-    humanTypeDelay: { min: 30, max: 90 },
-    speedProfile: 'easeInOut',
-    pauseOnPunctuation: true,
-  });
-
-  expect(controller).toBeDefined();
-  // All speed options should work together
-});
-
-test('createTyped should handle combined cursor options', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Combined cursor test'],
-    typeSpeed: 50,
-    cursor: {
-      enabled: true,
-      char: '█',
-      blink: true,
-      blinkSpeed: 250,
-      blinkCount: 10,
-      hideWhenComplete: true,
-      style: { color: '#00ff88', fontSize: '18px' },
-    },
-  });
-
-  expect(controller).toBeDefined();
-  // All cursor options should work together
-});
-
-test('createTyped should handle complex Phase 3 scenario', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Phase 3', 'Complete', 'Test'],
-    typeSpeed: 70,
-    typeSpeedVariance: 25,
-    shuffle: true,
-    speedProfile: 'easeOut',
-    humanTypeDelay: { min: 40, max: 100 },
-    stringPauseDelay: 600,
-    pauseOnPunctuation: true,
-    backspaceSpeed: 20,
+    backspaceSpeed: 30,
     deleteStrings: true,
-    deleteDelay: 1000,
-    loop: true,
-    cursor: {
-      enabled: true,
-      char: '▌',
-      blink: true,
-      blinkSpeed: 300,
-      blinkCount: 8,
-      hideWhenComplete: true,
-      style: 'custom-cursor',
-    },
-    onShuffle: () => {
-      // Shuffle callback
-    },
+    deleteDelay: 50,
+    stringPauseDelay: 50,
+    onBackspaceStart,
   });
 
-  expect(controller).toBeDefined();
-  expect(controller.start).toBeInstanceOf(Function);
-  expect(controller.backspace).toBeInstanceOf(Function);
-  expect(controller.deleteString).toBeInstanceOf(Function);
-  expect(controller.skip).toBeInstanceOf(Function);
-  expect(controller.goTo).toBeInstanceOf(Function);
-  expect(controller.getTypeSpeed).toBeInstanceOf(Function);
-  expect(controller.setSpeed).toBeInstanceOf(Function);
-  expect(controller.getCursorBlinkSpeed).toBeInstanceOf(Function);
-  expect(controller.setCursorBlinkSpeed).toBeInstanceOf(Function);
+  controller.start();
+
+  vi.advanceTimersByTime(0);
+  expect(getTextContent()).toBe('A');
+
+  controller.skip();
+  expect(getTextContent()).toBe('ABC');
+
+  vi.advanceTimersByTime(50);
+  expect(onBackspaceStart).toHaveBeenCalled();
 });

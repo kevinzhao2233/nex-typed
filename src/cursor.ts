@@ -18,7 +18,8 @@ export function createCursor(textHost: HTMLElement, options: CursorOptions): Cur
       // 内联样式对象
       Object.entries(options.style).forEach(([key, value]) => {
         if (value !== undefined) {
-          cursor.style.setProperty(key, value);
+          const cssKey = key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+          cursor.style.setProperty(cssKey, value);
         }
       });
     }

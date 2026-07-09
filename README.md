@@ -313,10 +313,6 @@ controller.setSpeed(30); // Change typing speed dynamically
 | Advanced Cursor    | ❌       | ✅        |
 | Dynamic Control    | ❌       | ✅        |
 
-## 🤝 Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
 ## 📄 License
 
 MIT License - see [LICENSE](./LICENSE) for details.
