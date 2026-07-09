@@ -530,7 +530,6 @@ test('deleteString should remove all characters and advance to next string', () 
   expect(getTextContent()).toBe('');
 
   vi.advanceTimersByTime(50);
-  vi.advanceTimersByTime(50);
   expect(getTextContent()).toBe('C');
   vi.advanceTimersByTime(50);
   expect(getTextContent()).toBe('CD');
@@ -767,42 +766,185 @@ test('shuffle should randomize string order and call onShuffle', () => {
   expect(shuffled.sort()).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']);
 });
 
-test('speedProfile options should be accepted', () => {
-  const profiles: Array<'linear' | 'easeIn' | 'easeOut' | 'easeInOut'> = ['linear', 'easeIn', 'easeOut', 'easeInOut'];
+function measureTickDelays(el: HTMLElement, options: Record<string, any>, charCount: number): number[] {
+  const originalSetTimeout = window.setTimeout.bind(window);
+  const capturedDelays: number[] = [];
 
-  for (const profile of profiles) {
-    const el = document.createElement('div');
-    document.body.appendChild(el);
+  window.setTimeout = ((fn: any, delay?: number, ...args: any[]) => {
+    if (typeof delay === 'number') {
+      capturedDelays.push(delay);
+    }
+    return originalSetTimeout(fn, delay, ...args);
+  }) as any;
 
-    const controller = createTyped(el, {
-      strings: ['Test'],
-      typeSpeed: 50,
-      speedProfile: profile,
-    });
+  const controller = createTyped(el, { ...options, cursor: false });
+  controller.start();
 
-    expect(controller).toBeDefined();
-    el.remove();
+  for (let i = 0; i < charCount + 2; i++) {
+    vi.advanceTimersToNextTimer();
+  }
+
+  window.setTimeout = originalSetTimeout;
+  controller.destroy();
+  return capturedDelays;
+}
+
+test('speedProfile easeIn should produce increasing delays', () => {
+  const el = document.createElement('div');
+  document.body.appendChild(el);
+
+  const delays = measureTickDelays(el, {
+    strings: ['ABCDE'],
+    typeSpeed: 100,
+    speedProfile: 'easeIn',
+  }, 5);
+
+  el.remove();
+
+  const tickDelays = delays.slice(1, 5);
+  expect(tickDelays.length).toBe(4);
+  for (let i = 1; i < tickDelays.length; i++) {
+    expect(tickDelays[i]).toBeGreaterThanOrEqual(tickDelays[i - 1]);
   }
 });
 
-test('typeSpeedVariance option should be accepted', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Test'],
-    typeSpeed: 50,
-    typeSpeedVariance: 20,
-  });
+test('speedProfile easeOut should produce increasing delays (fast then slow typing)', () => {
+  const el = document.createElement('div');
+  document.body.appendChild(el);
 
-  expect(controller).toBeDefined();
+  const delays = measureTickDelays(el, {
+    strings: ['ABCDE'],
+    typeSpeed: 100,
+    speedProfile: 'easeOut',
+  }, 5);
+
+  el.remove();
+
+  const tickDelays = delays.slice(1, 5);
+  expect(tickDelays.length).toBe(4);
+  for (let i = 1; i < tickDelays.length; i++) {
+    expect(tickDelays[i]).toBeGreaterThanOrEqual(tickDelays[i - 1]);
+  }
 });
 
-test('humanTypeDelay option should be accepted', () => {
-  const controller = createTyped(testElement, {
-    strings: ['Test'],
+test('speedProfile easeInOut should produce delays that increase then plateau', () => {
+  const el = document.createElement('div');
+  document.body.appendChild(el);
+
+  const delays = measureTickDelays(el, {
+    strings: ['ABCDEFGH'],
+    typeSpeed: 100,
+    speedProfile: 'easeInOut',
+  }, 8);
+
+  el.remove();
+
+  const tickDelays = delays.slice(1, 8);
+  expect(tickDelays.length).toBe(7);
+  for (let i = 1; i < tickDelays.length; i++) {
+    expect(tickDelays[i]).toBeGreaterThanOrEqual(tickDelays[i - 1]);
+  }
+  expect(tickDelays[0]).toBeLessThan(tickDelays[tickDelays.length - 1]);
+});
+
+test('speedProfile linear should produce constant delays', () => {
+  const el = document.createElement('div');
+  document.body.appendChild(el);
+
+  const delays = measureTickDelays(el, {
+    strings: ['ABC'],
+    typeSpeed: 50,
+    speedProfile: 'linear',
+  }, 3);
+
+  el.remove();
+
+  const tickDelays = delays.slice(1, 3);
+  expect(tickDelays.length).toBe(2);
+  expect(tickDelays[0]).toBe(tickDelays[1]);
+});
+
+test('typeSpeedVariance should vary delay based on random value', () => {
+  const el = document.createElement('div');
+  document.body.appendChild(el);
+
+  const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.75);
+
+  const delays = measureTickDelays(el, {
+    strings: ['AB'],
+    typeSpeed: 100,
+    typeSpeedVariance: 50,
+  }, 2);
+
+  randomSpy.mockRestore();
+  el.remove();
+
+  const tickDelays = delays.slice(1, 2);
+  expect(tickDelays.length).toBe(1);
+  const variance = (0.75 - 0.5) * 2 * 50 / 100;
+  const expectedDelay = Math.max(10, Math.round(100 * (1 + variance)));
+  expect(tickDelays[0]).toBe(expectedDelay);
+});
+
+test('typeSpeedVariance should keep delay within typeSpeed bounds', () => {
+  const el = document.createElement('div');
+  document.body.appendChild(el);
+
+  const delays = measureTickDelays(el, {
+    strings: ['ABCDEFGHIJ'],
+    typeSpeed: 100,
+    typeSpeedVariance: 50,
+  }, 10);
+
+  el.remove();
+
+  const tickDelays = delays.slice(1, 10);
+  expect(tickDelays.length).toBeGreaterThanOrEqual(5);
+  for (const d of tickDelays) {
+    expect(d).toBeGreaterThanOrEqual(10);
+    expect(d).toBeLessThanOrEqual(200);
+  }
+});
+
+test('humanTypeDelay should produce delays within min-max range', () => {
+  const el = document.createElement('div');
+  document.body.appendChild(el);
+
+  const delays = measureTickDelays(el, {
+    strings: ['ABCDEFGHIJ'],
     typeSpeed: 50,
     humanTypeDelay: { min: 30, max: 100 },
-  });
+  }, 10);
 
-  expect(controller).toBeDefined();
+  el.remove();
+
+  const tickDelays = delays.slice(1, 10);
+  expect(tickDelays.length).toBeGreaterThanOrEqual(5);
+  for (const d of tickDelays) {
+    expect(d).toBeGreaterThanOrEqual(30);
+    expect(d).toBeLessThanOrEqual(100);
+  }
+});
+
+test('humanTypeDelay should override typeSpeed', () => {
+  const el = document.createElement('div');
+  document.body.appendChild(el);
+
+  const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+
+  const delays = measureTickDelays(el, {
+    strings: ['AB'],
+    typeSpeed: 50,
+    humanTypeDelay: { min: 30, max: 100 },
+  }, 2);
+
+  randomSpy.mockRestore();
+  el.remove();
+
+  const tickDelays = delays.slice(1, 2);
+  expect(tickDelays.length).toBe(1);
+  const expectedDelay = Math.floor(0.5 * (100 - 30 + 1)) + 30;
+  expect(tickDelays[0]).toBe(expectedDelay);
 });
 
 test('combined options should work together', () => {
@@ -885,8 +1027,6 @@ test('deleteStrings with loop should cycle through strings', () => {
   vi.advanceTimersByTime(50);
   expect(getTextContent()).toBe('AB');
 });
-
-
 
 test('onLoop callback should receive current index', () => {
   const onLoop = vi.fn();

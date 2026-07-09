@@ -3,246 +3,1143 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nex-Typed Demo</title>
+    <title>Nex-Typed — Modern Typing Animation Library</title>
     <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+
+      :root {
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #12121a;
+        --bg-card: #16161f;
+        --bg-input: #1a1a26;
+        --border: #2a2a3a;
+        --border-hover: #3a3a5a;
+        --text-primary: #e8e8f0;
+        --text-secondary: #8888a8;
+        --text-muted: #555570;
+        --accent: #6c5ce7;
+        --accent-light: #a29bfe;
+        --accent-glow: rgba(108, 92, 231, 0.3);
+        --green: #00cec9;
+        --green-glow: rgba(0, 206, 201, 0.2);
+        --orange: #fdcb6e;
+        --red: #ff7675;
+        --pink: #fd79a8;
+        --radius: 12px;
+        --radius-sm: 8px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       body {
-        font-family: 'Courier New', monospace;
-        max-width: 800px;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .bg-grid {
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(108, 92, 231, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(108, 92, 231, 0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .bg-glow {
+        position: fixed;
+        top: -200px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 800px;
+        height: 600px;
+        background: radial-gradient(ellipse, rgba(108, 92, 231, 0.08) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .container {
+        position: relative;
+        z-index: 1;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 20px;
-        background: #1a1a1a;
-        color: #e0e0e0;
+        padding: 40px 24px 80px;
       }
-      .demo-section {
-        background: #2a2a2a;
-        padding: 20px;
-        margin: 20px 0;
-        border-radius: 8px;
-        border: 1px solid #444;
+
+      header {
+        text-align: center;
+        margin-bottom: 60px;
+        padding-top: 20px;
       }
-      .target {
-        min-height: 60px;
-        padding: 10px;
-        background: #1a1a1a;
-        border: 1px solid #555;
-        border-radius: 4px;
-        font-size: 18px;
-        line-height: 1.5;
+
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
       }
-      .controls {
-        margin-top: 10px;
+
+      .logo-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--accent), var(--green));
+        border-radius: 12px;
         display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .logo-text {
+        font-size: 36px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--accent-light), var(--green));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .tagline {
+        font-size: 18px;
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+        line-height: 1.6;
+      }
+
+      .badges {
+        display: flex;
+        justify-content: center;
         gap: 10px;
         flex-wrap: wrap;
       }
-      button {
-        padding: 8px 16px;
-        background: #0066cc;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-family: inherit;
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-family: 'JetBrains Mono', monospace;
       }
-      button:hover {
-        background: #0052a3;
+
+      .badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--green);
       }
-      button:disabled {
-        background: #555;
-        cursor: not-allowed;
+
+      .hero-demo {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 40px;
+        margin-bottom: 48px;
+        position: relative;
+        overflow: hidden;
       }
-      .cursor-demo {
-        color: #00ff88;
+
+      .hero-demo::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
       }
-      h2 {
-        color: #00ff88;
-        margin-top: 0;
+
+      .hero-terminal {
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
       }
-      .info {
-        color: #888;
+
+      .hero-terminal-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .hero-terminal-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .hero-terminal-dot:nth-child(1) { background: #ff5f57; }
+      .hero-terminal-dot:nth-child(2) { background: #febc2e; }
+      .hero-terminal-dot:nth-child(3) { background: #28c840; }
+
+      .hero-terminal-title {
+        flex: 1;
+        text-align: center;
+        font-size: 13px;
+        color: var(--text-muted);
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .hero-terminal-body {
+        padding: 24px;
+        min-height: 120px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 18px;
+        line-height: 1.8;
+        color: var(--green);
+      }
+
+      .hero-terminal-body [data-nex-typed-cursor] {
+        color: var(--accent-light) !important;
+      }
+
+      .section {
+        margin-bottom: 40px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .section-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+
+      .section-icon.purple { background: rgba(108, 92, 231, 0.15); }
+      .section-icon.green { background: rgba(0, 206, 201, 0.15); }
+      .section-icon.orange { background: rgba(253, 203, 110, 0.15); }
+      .section-icon.pink { background: rgba(253, 121, 168, 0.15); }
+      .section-icon.red { background: rgba(255, 118, 117, 0.15); }
+
+      .section-title {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .section-desc {
         font-size: 14px;
-        margin-top: 10px;
+        color: var(--text-secondary);
+        margin-bottom: 16px;
+        line-height: 1.5;
+      }
+
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        transition: border-color 0.2s;
+      }
+
+      .card:hover {
+        border-color: var(--border-hover);
+      }
+
+      .card-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .card-row { grid-template-columns: 1fr; }
+      }
+
+      .target {
+        min-height: 56px;
+        padding: 16px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+      }
+
+      .target [data-nex-typed-cursor] {
+        color: var(--accent-light) !important;
+      }
+
+      .controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--bg-input);
+        color: var(--text-primary);
+        font-size: 13px;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .btn:hover {
+        border-color: var(--accent);
+        background: rgba(108, 92, 231, 0.1);
+      }
+
+      .btn:active {
+        transform: scale(0.97);
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-light);
+        border-color: var(--accent-light);
+      }
+
+      .btn-danger {
+        border-color: rgba(255, 118, 117, 0.3);
+        color: var(--red);
+      }
+
+      .btn-danger:hover {
+        background: rgba(255, 118, 117, 0.1);
+        border-color: var(--red);
+      }
+
+      .btn-success {
+        border-color: rgba(0, 206, 201, 0.3);
+        color: var(--green);
+      }
+
+      .btn-success:hover {
+        background: rgba(0, 206, 201, 0.1);
+        border-color: var(--green);
+      }
+
+      .code-label {
+        display: inline-block;
+        padding: 2px 8px;
+        background: rgba(108, 92, 231, 0.15);
+        color: var(--accent-light);
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        margin-bottom: 12px;
+      }
+
+      .event-log {
+        margin-top: 12px;
+        padding: 12px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--text-muted);
+        max-height: 120px;
+        overflow-y: auto;
+        line-height: 1.6;
+      }
+
+      .event-log .event {
+        padding: 2px 0;
+      }
+
+      .event-log .event-time {
+        color: var(--text-muted);
+      }
+
+      .event-log .event-name {
+        color: var(--accent-light);
+      }
+
+      .event-log .event-data {
+        color: var(--green);
+      }
+
+      .speed-control {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .speed-control label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+
+      .speed-control input[type="range"] {
+        flex: 1;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        outline: none;
+      }
+
+      .speed-control input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+      }
+
+      .speed-value {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 13px;
+        color: var(--accent-light);
+        min-width: 50px;
+        text-align: right;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-top: 48px;
+      }
+
+      @media (max-width: 768px) {
+        .feature-grid { grid-template-columns: 1fr; }
+      }
+
+      .feature-item {
+        padding: 20px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        transition: border-color 0.2s;
+      }
+
+      .feature-item:hover {
+        border-color: var(--accent);
+      }
+
+      .feature-item-icon {
+        font-size: 24px;
+        margin-bottom: 10px;
+      }
+
+      .feature-item-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      .feature-item-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+
+      .api-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-top: 12px;
+      }
+
+      .api-table th,
+      .api-table td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .api-table th {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .api-table td {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+      }
+
+      .api-table td:first-child {
+        color: var(--accent-light);
+      }
+
+      .api-table td:nth-child(2) {
+        color: var(--green);
+      }
+
+      .api-table td:nth-child(3) {
+        color: var(--text-secondary);
+        font-family: 'Inter', sans-serif;
+      }
+
+      footer {
+        text-align: center;
+        padding: 40px 0;
+        color: var(--text-muted);
+        font-size: 13px;
+        border-top: 1px solid var(--border);
+        margin-top: 60px;
+      }
+
+      footer a {
+        color: var(--accent-light);
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .status-running {
+        background: rgba(0, 206, 201, 0.1);
+        color: var(--green);
+      }
+
+      .status-paused {
+        background: rgba(253, 203, 110, 0.1);
+        color: var(--orange);
+      }
+
+      .status-stopped {
+        background: rgba(255, 118, 117, 0.1);
+        color: var(--red);
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .status-running .status-dot {
+        animation: pulse 1.5s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+      }
+
+      .inline-code {
+        padding: 2px 6px;
+        background: rgba(108, 92, 231, 0.1);
+        color: var(--accent-light);
+        border-radius: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
       }
     </style>
   </head>
   <body>
-    <h1>🚀 Nex-Typed Demo</h1>
-    <p>A modern TypeScript typing animation library with enhanced features.</p>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
 
-    <div class="demo-section">
-      <h2>✨ Basic Typing</h2>
-      <div id="basic-demo" class="target"></div>
-      <div class="controls">
-        <button onclick="startBasic()">Start</button>
-        <button onclick="pauseBasic()">Pause</button>
-        <button onclick="resumeBasic()">Resume</button>
-        <button onclick="stopBasic()">Stop</button>
-        <button onclick="destroyBasic()">Destroy</button>
-      </div>
-      <div class="info">Tests basic typing animation with cursor</div>
-    </div>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <div class="logo-icon">N</div>
+          <span class="logo-text">nex-typed</span>
+        </div>
+        <p class="tagline">A modern TypeScript typing animation library for the browser.<br/>Terminal-style typing effects with full control over animation, cursor, and callbacks.</p>
+        <div class="badges">
+          <span class="badge"><span class="badge-dot"></span>TypeScript</span>
+          <span class="badge"><span class="badge-dot"></span>Zero Dependencies</span>
+          <span class="badge"><span class="badge-dot"></span>ESM</span>
+          <span class="badge"><span class="badge-dot"></span>MIT License</span>
+        </div>
+      </header>
 
-    <div class="demo-section">
-      <h2>🎯 Multiple Strings</h2>
-      <div id="multi-demo" class="target"></div>
-      <div class="controls">
-        <button onclick="startMulti()">Start</button>
-        <button onclick="pauseMulti()">Pause</button>
-        <button onclick="resumeMulti()">Resume</button>
-        <button onclick="stopMulti()">Stop</button>
+      <div class="hero-demo">
+        <div class="hero-terminal">
+          <div class="hero-terminal-bar">
+            <div class="hero-terminal-dot"></div>
+            <div class="hero-terminal-dot"></div>
+            <div class="hero-terminal-dot"></div>
+            <span class="hero-terminal-title">nex-typed — hero demo</span>
+          </div>
+          <div class="hero-terminal-body">
+            <div id="hero-demo"></div>
+          </div>
+        </div>
       </div>
-      <div class="info">Tests sequential typing of multiple strings</div>
-    </div>
 
-    <div class="demo-section">
-      <h2>⚡ Custom Cursor & Speed</h2>
-      <div id="custom-demo" class="target"></div>
-      <div class="controls">
-        <button onclick="startCustom()">Start</button>
-        <button onclick="pauseCustom()">Pause</button>
-        <button onclick="resumeCustom()">Resume</button>
-        <button onclick="stopCustom()">Stop</button>
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon purple">⚡</div>
+          <div>
+            <div class="section-title">Basic Typing & Control</div>
+          </div>
+        </div>
+        <p class="section-desc">Core animation with <span class="inline-code">start</span> / <span class="inline-code">pause</span> / <span class="inline-code">resume</span> / <span class="inline-code">stop</span> / <span class="inline-code">destroy</span> lifecycle control. Multiple strings are typed sequentially.</p>
+        <div class="card">
+          <div class="code-label">strings: ['Hello, World!', 'Welcome to Nex-Typed!', 'Full lifecycle control.']</div>
+          <div id="basic-demo" class="target"></div>
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div class="controls">
+              <button class="btn btn-primary" onclick="startBasic()">▶ Start</button>
+              <button class="btn" onclick="pauseBasic()">⏸ Pause</button>
+              <button class="btn btn-success" onclick="resumeBasic()">⏵ Resume</button>
+              <button class="btn" onclick="stopBasic()">⏹ Stop</button>
+              <button class="btn btn-danger" onclick="destroyBasic()">✕ Destroy</button>
+            </div>
+            <div id="basic-status" class="status-indicator status-stopped">
+              <span class="status-dot"></span> stopped
+            </div>
+          </div>
+          <div id="basic-log" class="event-log"></div>
+        </div>
       </div>
-      <div class="info">Tests custom cursor character and faster typing speed</div>
-    </div>
 
-    <div class="demo-section">
-      <h2>🔄 Pause/Resume Test</h2>
-      <div id="pause-demo" class="target"></div>
-      <div class="controls">
-        <button onclick="startPauseTest()">Start</button>
-        <button onclick="testPauseResume()">Test Pause/Resume</button>
-        <button onclick="stopPauseTest()">Stop</button>
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon green">🔄</div>
+          <div>
+            <div class="section-title">Loop & Delete (Backspace Effect)</div>
+          </div>
+        </div>
+        <p class="section-desc">Enable <span class="inline-code">loop</span> for infinite cycling. Use <span class="inline-code">deleteStrings</span> to backspace-delete before typing the next string. Manual <span class="inline-code">backspace()</span> and <span class="inline-code">skip()</span> also available.</p>
+        <div class="card">
+          <div class="code-label">loop: true · deleteStrings: true · backspaceSpeed: 30</div>
+          <div id="loop-demo" class="target"></div>
+          <div class="controls">
+            <button class="btn btn-primary" onclick="startLoop()">▶ Start</button>
+            <button class="btn" onclick="backspaceLoop()">⌫ Backspace</button>
+            <button class="btn" onclick="skipLoop()">⏭ Skip</button>
+            <button class="btn btn-danger" onclick="stopLoop()">⏹ Stop</button>
+          </div>
+        </div>
       </div>
-      <div class="info">Tests cursor blink resume functionality (fixed in v0.1.0)</div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon orange">🎯</div>
+          <div>
+            <div class="section-title">Cursor Customization</div>
+          </div>
+        </div>
+        <p class="section-desc">Customize cursor character, blink speed, blink count, hide-on-complete, and inline CSS styles. Use <span class="inline-code">setCursorBlinkSpeed()</span> to change blink speed at runtime.</p>
+        <div class="card-row">
+          <div class="card">
+            <div class="code-label">char: '█' · blink: true · hideWhenComplete: true</div>
+            <div id="cursor-block" class="target"></div>
+            <div class="controls">
+              <button class="btn btn-primary" onclick="startCursorBlock()">▶ Start</button>
+              <button class="btn btn-danger" onclick="stopCursorBlock()">⏹ Stop</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="code-label">char: '▌' · blinkCount: 5 · style: { color: '#fd79a8' }</div>
+            <div id="cursor-blink-count" class="target"></div>
+            <div class="controls">
+              <button class="btn btn-primary" onclick="startCursorBlinkCount()">▶ Start</button>
+              <button class="btn btn-danger" onclick="stopCursorBlinkCount()">⏹ Stop</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top: 20px;">
+          <div class="code-label">Runtime blink speed control via setCursorBlinkSpeed()</div>
+          <div id="cursor-speed" class="target"></div>
+          <div class="speed-control">
+            <label>Blink Speed:</label>
+            <input type="range" id="blink-speed-slider" min="100" max="1500" value="500" oninput="updateBlinkSpeed(this.value)" />
+            <span id="blink-speed-value" class="speed-value">500ms</span>
+          </div>
+          <div class="controls">
+            <button class="btn btn-primary" onclick="startCursorSpeed()">▶ Start</button>
+            <button class="btn btn-danger" onclick="stopCursorSpeed()">⏹ Stop</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon pink">🧠</div>
+          <div>
+            <div class="section-title">Smart Timing & Speed Profiles</div>
+          </div>
+        </div>
+        <p class="section-desc">Simulate human typing with <span class="inline-code">humanTypeDelay</span>, add variance with <span class="inline-code">typeSpeedVariance</span>, pause on punctuation with <span class="inline-code">pauseOnPunctuation</span>, and use speed curves like <span class="inline-code">easeIn</span> / <span class="inline-code">easeOut</span> / <span class="inline-code">easeInOut</span>.</p>
+        <div class="card-row">
+          <div class="card">
+            <div class="code-label">humanTypeDelay: { min: 40, max: 150 }</div>
+            <div id="human-demo" class="target"></div>
+            <div class="controls">
+              <button class="btn btn-primary" onclick="startHuman()">▶ Start</button>
+              <button class="btn btn-danger" onclick="stopHuman()">⏹ Stop</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="code-label">pauseOnPunctuation: true · typeSpeedVariance: 30</div>
+            <div id="punctuation-demo" class="target"></div>
+            <div class="controls">
+              <button class="btn btn-primary" onclick="startPunctuation()">▶ Start</button>
+              <button class="btn btn-danger" onclick="stopPunctuation()">⏹ Stop</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top: 20px;">
+          <div class="code-label">speedProfile: 'easeInOut' — starts slow, speeds up, then slows down</div>
+          <div id="easing-demo" class="target"></div>
+          <div class="controls">
+            <button class="btn btn-primary" onclick="startEasing('easeIn')">easeIn</button>
+            <button class="btn btn-primary" onclick="startEasing('easeOut')">easeOut</button>
+            <button class="btn btn-primary" onclick="startEasing('easeInOut')">easeInOut</button>
+            <button class="btn btn-danger" onclick="stopEasing()">⏹ Stop</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon red">🔀</div>
+          <div>
+            <div class="section-title">Shuffle & GoTo</div>
+          </div>
+        </div>
+        <p class="section-desc">Randomize string order with <span class="inline-code">shuffle: true</span>. Jump to any string index with <span class="inline-code">goTo(index)</span>. Dynamically change typing speed with <span class="inline-code">setSpeed()</span>.</p>
+        <div class="card">
+          <div class="code-label">shuffle: true · goTo(n) · setSpeed(n)</div>
+          <div id="shuffle-demo" class="target"></div>
+          <div class="speed-control">
+            <label>Type Speed:</label>
+            <input type="range" id="speed-slider" min="10" max="200" value="60" oninput="updateSpeed(this.value)" />
+            <span id="speed-value" class="speed-value">60ms</span>
+          </div>
+          <div class="controls">
+            <button class="btn btn-primary" onclick="startShuffle()">▶ Start (Shuffle)</button>
+            <button class="btn" onclick="goToShuffle(0)">GoTo #0</button>
+            <button class="btn" onclick="goToShuffle(1)">GoTo #1</button>
+            <button class="btn" onclick="goToShuffle(2)">GoTo #2</button>
+            <button class="btn btn-danger" onclick="stopShuffle()">⏹ Stop</button>
+          </div>
+          <div id="shuffle-log" class="event-log"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon purple">📡</div>
+          <div>
+            <div class="section-title">Callback Events</div>
+          </div>
+        </div>
+        <p class="section-desc">Full lifecycle hooks: <span class="inline-code">onBegin</span>, <span class="inline-code">onStringStart</span>, <span class="inline-code">onStringEnd</span>, <span class="inline-code">onComplete</span>, <span class="inline-code">onPause</span>, <span class="inline-code">onResume</span>, <span class="inline-code">onBackspaceStart</span>, <span class="inline-code">onBackspaceEnd</span>, <span class="inline-code">onLoop</span>, <span class="inline-code">onShuffle</span>.</p>
+        <div class="card">
+          <div class="code-label">All callbacks enabled — watch the event log below</div>
+          <div id="callback-demo" class="target"></div>
+          <div class="controls">
+            <button class="btn btn-primary" onclick="startCallback()">▶ Start</button>
+            <button class="btn" onclick="pauseCallback()">⏸ Pause</button>
+            <button class="btn btn-success" onclick="resumeCallback()">⏵ Resume</button>
+            <button class="btn btn-danger" onclick="stopCallback()">⏹ Stop</button>
+          </div>
+          <div id="callback-log" class="event-log" style="max-height: 200px;"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon green">🎨</div>
+          <div>
+            <div class="section-title">No Cursor & CSS Selector Target</div>
+          </div>
+        </div>
+        <p class="section-desc">Disable cursor with <span class="inline-code">cursor.enabled: false</span>. Pass a CSS selector string instead of an HTMLElement as the target.</p>
+        <div class="card-row">
+          <div class="card">
+            <div class="code-label">cursor.enabled: false</div>
+            <div id="no-cursor-demo" class="target"></div>
+            <div class="controls">
+              <button class="btn btn-primary" onclick="startNoCursor()">▶ Start</button>
+              <button class="btn btn-danger" onclick="stopNoCursor()">⏹ Stop</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="code-label">target: '.css-selector-target' (string selector)</div>
+            <div id="css-selector-target" class="target css-selector-target"></div>
+            <div class="controls">
+              <button class="btn btn-primary" onclick="startCssSelector()">▶ Start</button>
+              <button class="btn btn-danger" onclick="stopCssSelector()">⏹ Stop</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="feature-item-icon">⚡</div>
+          <div class="feature-item-title">Lightweight</div>
+          <div class="feature-item-desc">Zero dependencies. Minimal bundle size. Pure TypeScript with strict type safety.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon">🎯</div>
+          <div class="feature-item-title">Full Control</div>
+          <div class="feature-item-desc">Start, pause, resume, stop, destroy, skip, goTo, backspace — complete lifecycle API.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon">🧠</div>
+          <div class="feature-item-title">Human-Like</div>
+          <div class="feature-item-desc">Simulate natural typing with variance, punctuation pauses, and speed curves.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon">🔄</div>
+          <div class="feature-item-title">Loop & Delete</div>
+          <div class="feature-item-desc">Loop animations infinitely. Backspace-delete strings with configurable speed.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon">🎨</div>
+          <div class="feature-item-title">Cursor FX</div>
+          <div class="feature-item-desc">Custom character, blink speed/count, hide-on-complete, and CSS styling.</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon">📡</div>
+          <div class="feature-item-title">Callbacks</div>
+          <div class="feature-item-desc">10 lifecycle hooks for fine-grained control and event-driven architectures.</div>
+        </div>
+      </div>
+
+      <div class="section" style="margin-top: 48px;">
+        <div class="section-header">
+          <div class="section-icon orange">📋</div>
+          <div>
+            <div class="section-title">API Reference</div>
+          </div>
+        </div>
+        <div class="card">
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th>Method / Option</th>
+                <th>Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>start()</td><td>() =&gt; void</td><td>Begin the typing animation</td></tr>
+              <tr><td>pause()</td><td>() =&gt; void</td><td>Pause the current animation</td></tr>
+              <tr><td>resume()</td><td>() =&gt; void</td><td>Resume from paused state</td></tr>
+              <tr><td>stop()</td><td>() =&gt; void</td><td>Stop and reset the animation</td></tr>
+              <tr><td>destroy()</td><td>() =&gt; void</td><td>Stop and remove all DOM elements</td></tr>
+              <tr><td>backspace()</td><td>() =&gt; void</td><td>Manually trigger backspace deletion</td></tr>
+              <tr><td>deleteString()</td><td>() =&gt; void</td><td>Delete current string then advance</td></tr>
+              <tr><td>skip()</td><td>() =&gt; void</td><td>Skip to end of current string</td></tr>
+              <tr><td>goTo(index)</td><td>(n) =&gt; void</td><td>Jump to string at given index</td></tr>
+              <tr><td>setSpeed(ms)</td><td>(n) =&gt; void</td><td>Change typing speed at runtime</td></tr>
+              <tr><td>getTypeSpeed()</td><td>() =&gt; number</td><td>Get current typing speed</td></tr>
+              <tr><td>setCursorBlinkSpeed(ms)</td><td>(n) =&gt; void</td><td>Change cursor blink speed</td></tr>
+              <tr><td>getCursorBlinkSpeed()</td><td>() =&gt; number</td><td>Get current cursor blink speed</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <footer>
+        <p><a href="https://github.com/kevinzhao2233/nex-typed" target="_blank">GitHub</a> · MIT License · Built with TypeScript</p>
+      </footer>
     </div>
 
     <script type="module">
-      // Import the library from the built file
       import { createTyped } from './dist/index.mjs';
 
-      // Store controllers
-      let basicController, multiController, customController, pauseController;
+      const controllers = {};
 
-      // Basic demo
+      function logEvent(containerId, name, data = '') {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const div = document.createElement('div');
+        div.className = 'event';
+        div.innerHTML = `<span class="event-time">${time}</span> <span class="event-name">${name}</span> <span class="event-data">${data}</span>`;
+        el.appendChild(div);
+        el.scrollTop = el.scrollHeight;
+      }
+
+      function setStatus(id, status) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const labels = { running: 'running', paused: 'paused', stopped: 'stopped' };
+        el.className = `status-indicator status-${status}`;
+        el.innerHTML = `<span class="status-dot"></span> ${labels[status]}`;
+      }
+
+      // ── Hero Demo ──
+      window.addEventListener('load', () => {
+        controllers.hero = createTyped('#hero-demo', {
+          strings: [
+            'npm install nex-typed',
+            'import { createTyped } from "nex-typed"',
+            'createTyped("#target", { strings: ["Hello!"], loop: true })',
+            'Full control. Zero dependencies. Pure TypeScript.',
+          ],
+          typeSpeed: 55,
+          startDelay: 800,
+          deleteStrings: true,
+          deleteDelay: 2000,
+          backspaceSpeed: 25,
+          loop: true,
+          stringPauseDelay: 800,
+          cursor: {
+            enabled: true,
+            char: '▋',
+            blink: true,
+            blinkSpeed: 400,
+          },
+        });
+        controllers.hero.start();
+      });
+
+      // ── Basic Demo ──
       window.startBasic = () => {
-        if (basicController) basicController.destroy();
-        basicController = createTyped('#basic-demo', {
-          strings: [
-            'Hello, World! 👋',
-            'Welcome to Nex-Typed!',
-            'A modern typing animation library.',
-          ],
-          typeSpeed: 80,
-          startDelay: 500,
-          cursor: {
-            enabled: true,
-            char: '|',
-            blink: true,
-          },
-          onBegin: () => console.log('Basic: Animation started'),
-          onStringStart: (index, text) => console.log(`Basic: String ${index} started: "${text}"`),
-          onStringEnd: (index, text) => console.log(`Basic: String ${index} completed: "${text}"`),
-          onComplete: () => console.log('Basic: Animation completed'),
-        });
-        basicController.start();
-      };
-
-      window.pauseBasic = () => basicController?.pause();
-      window.resumeBasic = () => basicController?.resume();
-      window.stopBasic = () => basicController?.stop();
-      window.destroyBasic = () => {
-        basicController?.destroy();
-        basicController = null;
-      };
-
-      // Multiple strings demo
-      window.startMulti = () => {
-        if (multiController) multiController.destroy();
-        multiController = createTyped('#multi-demo', {
-          strings: ['First string typed...', 'Then the second one...', 'And finally the third!'],
-          typeSpeed: 60,
-          startDelay: 300,
-          cursor: {
-            enabled: true,
-            char: '_',
-            blink: true,
-          },
-        });
-        multiController.start();
-      };
-
-      window.pauseMulti = () => multiController?.pause();
-      window.resumeMulti = () => multiController?.resume();
-      window.stopMulti = () => multiController?.stop();
-
-      // Custom cursor demo
-      window.startCustom = () => {
-        if (customController) customController.destroy();
-        customController = createTyped('#custom-demo', {
-          strings: ['Custom cursor here ▶', 'Faster typing speed ⚡', 'Different character ✨'],
-          typeSpeed: 40, // Faster
-          cursor: {
-            enabled: true,
-            char: '█', // Block cursor
-            blink: true,
-          },
-        });
-        customController.start();
-      };
-
-      window.pauseCustom = () => customController?.pause();
-      window.resumeCustom = () => customController?.resume();
-      window.stopCustom = () => customController?.stop();
-
-      // Pause/Resume test (demonstrates the cursor blink fix)
-      window.startPauseTest = () => {
-        if (pauseController) pauseController.destroy();
-        pauseController = createTyped('#pause-demo', {
-          strings: [
-            'Watch the cursor blink...',
-            'Pause the animation...',
-            'Resume and see cursor blink again!',
-          ],
+        controllers.basic?.destroy();
+        document.getElementById('basic-log').innerHTML = '';
+        controllers.basic = createTyped('#basic-demo', {
+          strings: ['Hello, World!', 'Welcome to Nex-Typed!', 'Full lifecycle control.'],
           typeSpeed: 70,
-          startDelay: 200,
+          startDelay: 300,
+          cursor: { enabled: true, char: '|', blink: true },
+          onBegin: () => { logEvent('basic-log', 'onBegin'); setStatus('basic-status', 'running'); },
+          onStringStart: (i, t) => logEvent('basic-log', 'onStringStart', `[${i}] "${t}"`),
+          onStringEnd: (i, t) => logEvent('basic-log', 'onStringEnd', `[${i}] "${t}"`),
+          onComplete: () => { logEvent('basic-log', 'onComplete'); setStatus('basic-status', 'stopped'); },
+          onPause: (i, c) => { logEvent('basic-log', 'onPause', `str=${i} char=${c}`); setStatus('basic-status', 'paused'); },
+          onResume: (i, c) => { logEvent('basic-log', 'onResume', `str=${i} char=${c}`); setStatus('basic-status', 'running'); },
+        });
+        controllers.basic.start();
+      };
+      window.pauseBasic = () => controllers.basic?.pause();
+      window.resumeBasic = () => controllers.basic?.resume();
+      window.stopBasic = () => { controllers.basic?.stop(); setStatus('basic-status', 'stopped'); };
+      window.destroyBasic = () => { controllers.basic?.destroy(); controllers.basic = null; setStatus('basic-status', 'stopped'); };
+
+      // ── Loop & Delete Demo ──
+      window.startLoop = () => {
+        controllers.loop?.destroy();
+        controllers.loop = createTyped('#loop-demo', {
+          strings: ['Typing...', 'Deleting...', 'And typing again!'],
+          typeSpeed: 70,
+          deleteStrings: true,
+          deleteDelay: 1200,
+          backspaceSpeed: 30,
+          loop: true,
+          stringPauseDelay: 600,
+          cursor: { enabled: true, char: '_', blink: true },
+        });
+        controllers.loop.start();
+      };
+      window.backspaceLoop = () => controllers.loop?.backspace();
+      window.skipLoop = () => controllers.loop?.skip();
+      window.stopLoop = () => controllers.loop?.stop();
+
+      // ── Cursor Block ──
+      window.startCursorBlock = () => {
+        controllers.cursorBlock?.destroy();
+        controllers.cursorBlock = createTyped('#cursor-block', {
+          strings: ['Block cursor █', 'Will hide on complete'],
+          typeSpeed: 65,
+          cursor: { enabled: true, char: '█', blink: true, hideWhenComplete: true },
+        });
+        controllers.cursorBlock.start();
+      };
+      window.stopCursorBlock = () => controllers.cursorBlock?.stop();
+
+      // ── Cursor Blink Count ──
+      window.startCursorBlinkCount = () => {
+        controllers.cursorBlinkCount?.destroy();
+        controllers.cursorBlinkCount = createTyped('#cursor-blink-count', {
+          strings: ['Blinks 5 times after done', 'Then stays visible'],
+          typeSpeed: 60,
           cursor: {
             enabled: true,
             char: '▌',
             blink: true,
-          },
-          onPause: (index, charIndex) => {
-            console.log('Paused at:', index, charIndex);
-            document.querySelector('#pause-demo').style.opacity = '0.7';
-          },
-          onResume: (index, charIndex) => {
-            console.log('Resumed at:', index, charIndex);
-            document.querySelector('#pause-demo').style.opacity = '1';
+            blinkCount: 5,
+            style: { color: '#fd79a8' },
           },
         });
-        pauseController.start();
+        controllers.cursorBlinkCount.start();
+      };
+      window.stopCursorBlinkCount = () => controllers.cursorBlinkCount?.stop();
+
+      // ── Cursor Speed ──
+      window.startCursorSpeed = () => {
+        controllers.cursorSpeed?.destroy();
+        controllers.cursorSpeed = createTyped('#cursor-speed', {
+          strings: ['Adjust my blink speed with the slider', 'Faster or slower, your choice!'],
+          typeSpeed: 55,
+          cursor: { enabled: true, char: '|', blink: true, blinkSpeed: 500 },
+        });
+        controllers.cursorSpeed.start();
+      };
+      window.stopCursorSpeed = () => controllers.cursorSpeed?.stop();
+      window.updateBlinkSpeed = (val) => {
+        document.getElementById('blink-speed-value').textContent = `${val}ms`;
+        controllers.cursorSpeed?.setCursorBlinkSpeed(Number(val));
       };
 
-      window.testPauseResume = () => {
-        if (!pauseController) return;
-        pauseController.pause();
-        setTimeout(() => {
-          pauseController.resume();
-        }, 2000);
+      // ── Human Typing ──
+      window.startHuman = () => {
+        controllers.human?.destroy();
+        controllers.human = createTyped('#human-demo', {
+          strings: ['This feels like a real person typing...', 'Each character has a random delay.'],
+          humanTypeDelay: { min: 40, max: 150 },
+          cursor: { enabled: true, char: '|', blink: true },
+        });
+        controllers.human.start();
+      };
+      window.stopHuman = () => controllers.human?.stop();
+
+      // ── Punctuation ──
+      window.startPunctuation = () => {
+        controllers.punctuation?.destroy();
+        controllers.punctuation = createTyped('#punctuation-demo', {
+          strings: ['Hello! How are you? I am fine.'],
+          typeSpeed: 50,
+          typeSpeedVariance: 30,
+          pauseOnPunctuation: true,
+          cursor: { enabled: true, char: '|', blink: true },
+        });
+        controllers.punctuation.start();
+      };
+      window.stopPunctuation = () => controllers.punctuation?.stop();
+
+      // ── Easing ──
+      window.startEasing = (profile) => {
+        controllers.easing?.destroy();
+        controllers.easing = createTyped('#easing-demo', {
+          strings: [`Speed profile: ${profile}`, 'Watch how the typing speed changes...'],
+          typeSpeed: 80,
+          speedProfile: profile,
+          cursor: { enabled: true, char: '|', blink: true },
+        });
+        controllers.easing.start();
+      };
+      window.stopEasing = () => controllers.easing?.stop();
+
+      // ── Shuffle & GoTo ──
+      window.startShuffle = () => {
+        controllers.shuffle?.destroy();
+        document.getElementById('shuffle-log').innerHTML = '';
+        controllers.shuffle = createTyped('#shuffle-demo', {
+          strings: ['First string', 'Second string', 'Third string'],
+          typeSpeed: 60,
+          shuffle: true,
+          cursor: { enabled: true, char: '|', blink: true },
+          onShuffle: (orig, shuffled) => {
+            logEvent('shuffle-log', 'onShuffle', `→ [${shuffled.map((s, i) => `"${s}"`).join(', ')}]`);
+          },
+          onStringStart: (i, t) => logEvent('shuffle-log', 'onStringStart', `[${i}] "${t}"`),
+          onStringEnd: (i, t) => logEvent('shuffle-log', 'onStringEnd', `[${i}] "${t}"`),
+        });
+        controllers.shuffle.start();
+      };
+      window.goToShuffle = (i) => controllers.shuffle?.goTo(i);
+      window.stopShuffle = () => controllers.shuffle?.stop();
+      window.updateSpeed = (val) => {
+        document.getElementById('speed-value').textContent = `${val}ms`;
+        controllers.shuffle?.setSpeed(Number(val));
       };
 
-      window.stopPauseTest = () => pauseController?.stop();
+      // ── Callback Demo ──
+      window.startCallback = () => {
+        controllers.callback?.destroy();
+        document.getElementById('callback-log').innerHTML = '';
+        controllers.callback = createTyped('#callback-demo', {
+          strings: ['Watch the event log', 'Every callback is fired', 'onBegin → onStringStart → onStringEnd → onComplete'],
+          typeSpeed: 60,
+          cursor: { enabled: true, char: '|', blink: true },
+          onBegin: () => logEvent('callback-log', 'onBegin'),
+          onStringStart: (i, t) => logEvent('callback-log', 'onStringStart', `[${i}] "${t}"`),
+          onStringEnd: (i, t) => logEvent('callback-log', 'onStringEnd', `[${i}] "${t}"`),
+          onComplete: () => logEvent('callback-log', 'onComplete'),
+          onPause: (i, c) => logEvent('callback-log', 'onPause', `str=${i} char=${c}`),
+          onResume: (i, c) => logEvent('callback-log', 'onResume', `str=${i} char=${c}`),
+          onBackspaceStart: (i, t) => logEvent('callback-log', 'onBackspaceStart', `[${i}]`),
+          onBackspaceEnd: (i, t) => logEvent('callback-log', 'onBackspaceEnd', `[${i}]`),
+          onLoop: (i) => logEvent('callback-log', 'onLoop', `loop at ${i}`),
+          onShuffle: (o, s) => logEvent('callback-log', 'onShuffle', ''),
+        });
+        controllers.callback.start();
+      };
+      window.pauseCallback = () => controllers.callback?.pause();
+      window.resumeCallback = () => controllers.callback?.resume();
+      window.stopCallback = () => controllers.callback?.stop();
 
-      // Auto-start basic demo on load
-      window.addEventListener('load', () => {
-        console.log('🚀 Nex-Typed Demo loaded successfully!');
-        console.log('✅ All critical bug fixes applied:');
-        console.log('   - Fixed duplicate CursorOptions interface');
-        console.log('   - Fixed null safety in scheduleNextTick');
-        console.log('   - Fixed cursor blink resume after pause');
-        console.log('   - Updated package.json metadata');
-        console.log('   - Fixed broken tests');
-      });
+      // ── No Cursor ──
+      window.startNoCursor = () => {
+        controllers.noCursor?.destroy();
+        controllers.noCursor = createTyped('#no-cursor-demo', {
+          strings: ['No cursor at all', 'Just the text, clean and simple'],
+          typeSpeed: 55,
+          cursor: { enabled: false },
+        });
+        controllers.noCursor.start();
+      };
+      window.stopNoCursor = () => controllers.noCursor?.stop();
+
+      // ── CSS Selector Target ──
+      window.startCssSelector = () => {
+        controllers.cssSelector?.destroy();
+        controllers.cssSelector = createTyped('.css-selector-target', {
+          strings: ['Targeted via CSS selector!', 'createTyped(".selector", opts)'],
+          typeSpeed: 55,
+          cursor: { enabled: true, char: '▎', blink: true },
+        });
+        controllers.cssSelector.start();
+      };
+      window.stopCssSelector = () => controllers.cssSelector?.stop();
     </script>
   </body>
 </html>

@@ -223,15 +223,15 @@ export function createTyped(target: TypedTarget, options: TypedOptions): TypedCo
         return;
       }
 
+      state.charIndex--;
+      const output = state.strings[state.index].slice(0, state.charIndex);
+      render(output);
+
       if (state.charIndex <= 0) {
         isBackspacing = false;
         options.onBackspaceEnd?.(state.index, currentString);
         return;
       }
-
-      state.charIndex--;
-      const output = state.strings[state.index].slice(0, state.charIndex);
-      render(output);
 
       backspaceTimeoutId = window.setTimeout(backspaceTick, backspaceSpeed);
     }
@@ -254,16 +254,16 @@ export function createTyped(target: TypedTarget, options: TypedOptions): TypedCo
         return;
       }
 
+      state.charIndex--;
+      const output = state.strings[state.index].slice(0, state.charIndex);
+      render(output);
+
       if (state.charIndex <= 0) {
         isBackspacing = false;
         options.onBackspaceEnd?.(state.index, currentString);
         advanceToNextString();
         return;
       }
-
-      state.charIndex--;
-      const output = state.strings[state.index].slice(0, state.charIndex);
-      render(output);
 
       backspaceTimeoutId = window.setTimeout(deleteTick, backspaceSpeed);
     }
@@ -374,6 +374,10 @@ export function createTyped(target: TypedTarget, options: TypedOptions): TypedCo
       return;
     }
 
+    state.charIndex--;
+    const output = state.strings[state.index].slice(0, state.charIndex);
+    render(output);
+
     if (state.charIndex <= 0) {
       isBackspacing = false;
       const currentString = state.strings[state.index];
@@ -382,15 +386,12 @@ export function createTyped(target: TypedTarget, options: TypedOptions): TypedCo
       return;
     }
 
-    state.charIndex--;
-    const output = state.strings[state.index].slice(0, state.charIndex);
-    render(output);
-
     backspaceTimeoutId = window.setTimeout(continueBackspaceAfterResume, backspaceSpeed);
   }
 
   function stop() {
     state.running = false;
+    state.paused = false;
     isBackspacing = false;
     clearAllTimers();
     cursor?.hide();
