@@ -741,6 +741,10 @@ Coordinate multiple typing animations.
       hideWhenComplete: true,
       style: { color: '#fff' },
     },
+    onComplete: () => {
+      // Start content once header is done
+      content.start();
+    },
   });
 
   // Content animation (starts after header)
@@ -763,21 +767,8 @@ Coordinate multiple typing animations.
     },
   });
 
-  // Coordinate animations
-  async function runSequence() {
-    // Start header
-    header.start();
-
-    // Wait for header to complete
-    await new Promise((resolve) => {
-      header.onComplete = resolve;
-    });
-
-    // Start content
-    content.start();
-  }
-
-  runSequence();
+  // Start the sequence
+  header.start();
 </script>
 ```
 
@@ -924,51 +915,6 @@ Add audio feedback to typing (requires audio files).
 
 ---
 
-## Performance Comparison
-
-### Example: 1000 Character String
-
-```typescript
-// nex-typed: Efficient handling
-const controller = createTyped('#target', {
-  strings: ['A'.repeat(1000)], // 1000 characters
-  typeSpeed: 10, // Fast typing
-  cursor: {
-    enabled: true,
-    char: '▌',
-    blink: true,
-    blinkSpeed: 200,
-  },
-});
-
-// Performance characteristics:
-// - Memory efficient (no jQuery overhead)
-// - Smooth rendering (optimized DOM updates)
-// - No frame drops (proper timer management)
-// - ~5KB bundle size
-```
-
-### Comparison with typed.js
-
-```typescript
-// typed.js: Larger bundle, jQuery dependency
-// nex-typed: Smaller bundle, no dependencies
-
-// Bundle size comparison:
-// typed.js: ~20KB + jQuery (~85KB) = ~105KB
-// nex-typed: ~5KB = ~5KB
-
-// Memory usage:
-// typed.js: Higher (jQuery overhead)
-// nex-typed: Lower (vanilla JS)
-
-// Performance:
-// typed.js: Good (but limited features)
-// nex-typed: Excellent (more features, better optimization)
-```
-
----
-
 ## Best Practices
 
 ### 1. Memory Management
@@ -1062,5 +1008,4 @@ const controller = createTyped('#target', {
 
 - **[API Reference](./API.md)** - Complete API documentation
 - **[Usage Guide](./USAGE.md)** - Practical usage examples
-- **[Migration Guide](./MIGRATION.md)** - Migrating from typed.js
 - **[GitHub Issues](https://github.com/kevinzhao2233/nex-typed/issues)** - Get help or report issues

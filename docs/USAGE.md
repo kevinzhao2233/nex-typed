@@ -804,24 +804,22 @@ const controller = createTyped('#target', {
 
 ```typescript
 async function sequentialAnimations() {
-  const controller1 = createTyped('#msg1', {
-    strings: ['First message'],
-    typeSpeed: 50,
-  });
-
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
+    const controller1 = createTyped('#msg1', {
+      strings: ['First message'],
+      typeSpeed: 50,
+      onComplete: resolve,
+    });
     controller1.start();
-    controller1.onComplete = resolve;
   });
 
-  const controller2 = createTyped('#msg2', {
-    strings: ['Second message'],
-    typeSpeed: 50,
-  });
-
-  await new Promise((resolve) => {
+  await new Promise<void>((resolve) => {
+    const controller2 = createTyped('#msg2', {
+      strings: ['Second message'],
+      typeSpeed: 50,
+      onComplete: resolve,
+    });
     controller2.start();
-    controller2.onComplete = resolve;
   });
 }
 ```
@@ -991,6 +989,5 @@ const controller = createTyped('#target', {
 ## Next Steps
 
 - **[API Reference](./API.md)** - Complete API documentation
-- **[Migration Guide](./MIGRATION.md)** - Migrating from typed.js
 - **[Examples](./EXAMPLES.md)** - More real-world examples
 - **[GitHub Issues](https://github.com/kevinzhao2233/nex-typed/issues)** - Get help or report issues

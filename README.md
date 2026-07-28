@@ -36,7 +36,7 @@ yarn add nex-typed
 ## 🎯 Key Features
 
 - ✅ **Modern TypeScript** - Full type safety with TypeScript 5.9
-- ✅ **Lightweight** - Zero dependencies, ~5KB minified
+- ✅ **Lightweight** - Zero dependencies, ~12KB minified (~2.8KB gzipped)
 - ✅ **Feature Rich** - Backspace, loops, speed control, callbacks
 - ✅ **Customizable** - Flexible cursor and animation options
 - ✅ **Browser Native** - Vanilla JavaScript, no framework required
@@ -161,7 +161,7 @@ controller.setSpeed(30); // Change typing speed dynamically
 
 ## 📊 Performance
 
-- **Bundle Size**: ~5KB minified, ~2KB gzipped
+- **Bundle Size**: ~12KB minified, ~2.8KB gzipped (zero runtime dependencies)
 - **Memory**: Proper cleanup, no memory leaks
 - **Browser Support**: Modern browsers (ES2023 + DOM APIs)
 - **Framework Support**: Works with React, Vue, Svelte, Angular

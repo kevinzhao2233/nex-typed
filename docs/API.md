@@ -150,9 +150,10 @@ interface TypedOptions {
 
 **`humanTypeDelay: { min: number; max: number }`**
 
-- Random typing delays for realistic human typing
-- Overrides `typeSpeed` when specified
-- Example: `{ min: 30, max: 100 }` creates 30-100ms random delays
+- Random typing delays (in milliseconds) for realistic human typing
+- When specified, the random value fully replaces the base `typeSpeed` (and any `typeSpeedVariance` adjustment) for each character
+- The resulting delay is still subject to further modification by `speedProfile` (curve scaling) and `pauseOnPunctuation` (+200ms on punctuation)
+- Example: `{ min: 30, max: 100 }` produces 30-100ms random delays before any curve/punctuation adjustments
 
 **`stringPauseDelay: number`** (Default: 500)
 
@@ -161,8 +162,8 @@ interface TypedOptions {
 
 **`pauseOnPunctuation: boolean`** (Default: false)
 
-- When true, adds extra 200ms delay on punctuation characters
-- Punctuation: `. ! ? , . ! ?` (English and Chinese)
+- When true, adds an extra 200ms delay after typing a punctuation character
+- Recognized punctuation: `.` `!` `?` (English) and `，` `。` `！` `？` (Chinese full-width)
 
 #### Speed Variation Options
 
@@ -177,7 +178,7 @@ interface TypedOptions {
 - When true, randomizes string order on start
 - Triggers `onShuffle` callback with original and shuffled order
 
-**`speedProfile: string`** (Default: 'linear')
+**`speedProfile: 'linear' | 'easeIn' | 'easeOut' | 'easeInOut'`** (Default: 'linear')
 
 - Animation curve for typing speed:
   - `'linear'` - Constant speed
@@ -258,7 +259,7 @@ interface CursorOptions {
   blinkSpeed?: number;
   blinkCount?: number;
   hideWhenComplete?: boolean;
-  style?: string | Record<string, string>;
+  style?: string | Partial<{ [K in keyof CSSStyleDeclaration]: CSSStyleDeclaration[K] extends string ? K : never }>;
 }
 ```
 
@@ -290,11 +291,11 @@ interface CursorOptions {
 - When true, hides cursor when animation completes
 - Useful for clean terminal look
 
-**`style: string | Record<string, string>`**
+**`style: string | Partial<CSSStyleDeclaration>`**
 
-- CSS styling for cursor
-- String = CSS class name
-- Object = inline styles (React-style)
+- CSS styling for the cursor
+- String = CSS class name (added via `classList.add`)
+- Object = inline styles, keyed by camelCase CSS property names (e.g. `{ color: 'red', fontWeight: 'bold' }`); keys are converted to kebab-case and applied via `style.setProperty`
 
 ---
 
@@ -338,8 +339,9 @@ interface TypedController {
 **`stop(): void`**
 
 - Stops the animation immediately
-- Hides cursor
-- Can be resumed with `start()`
+- Hides cursor and clears all timers
+- Internal state (`index`, `charIndex`) is preserved, but the animation is halted
+- Cannot be resumed with `start()` — `start()` will re-trigger `onBegin`/`onStringStart(0, ...)` while leaving `index`/`charIndex` untouched, producing inconsistent state. To pause temporarily, use `pause()`/`resume()` instead. To restart cleanly, call `destroy()` and create a new controller.
 
 **`destroy(): void`**
 
@@ -386,9 +388,9 @@ interface TypedController {
 **`goTo(index: number): void`**
 
 - Jump to specific string index
-- `index` must be valid (0 to strings.length - 1)
-- Immediately shows target string
-- Starts typing from beginning
+- `index` must be valid (0 to strings.length - 1); invalid indices are silently ignored
+- Clears the current text and waits for `stringPauseDelay` before typing the target string from its first character
+- Triggers `onStringStart` callback with the target index and string
 
 #### Speed Controls
 
@@ -582,8 +584,13 @@ controller.goTo(999); // Silently fails (index out of bounds)
 
 ```typescript
 controller.destroy();
-controller.start(); // No effect, no error
+controller.start(); // No visible effect, no error
 ```
+
+After `destroy()`, the root DOM element and cursor are removed from the document. Calling
+`start()` will still flip internal state flags and schedule timers, but all subsequent
+`render()` calls write to detached DOM nodes, so nothing appears on screen. To restart an
+animation, create a new controller with `createTyped()` instead.
 
 **Calling methods during invalid state**
 
@@ -718,7 +725,6 @@ export default {
 ## Next Steps
 
 - **[Usage Guide](./USAGE.md)** - Practical usage examples
-- **[Migration Guide](./MIGRATION.md)** - Migrating from typed.js
 - **[Examples](./EXAMPLES.md)** - Real-world examples
 - **[GitHub Issues](https://github.com/kevinzhao2233/nex-typed/issues)** - Report bugs or request
   features
