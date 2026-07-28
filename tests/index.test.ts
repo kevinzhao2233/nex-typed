@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createTyped } from '../src';
+import type { TypedOptions } from '../src/types';
 
 let testElement: HTMLElement;
 
@@ -766,18 +767,18 @@ test('shuffle should randomize string order and call onShuffle', () => {
   expect(shuffled.sort()).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']);
 });
 
-function measureTickDelays(el: HTMLElement, options: Record<string, any>, charCount: number): number[] {
+function measureTickDelays(el: HTMLElement, options: TypedOptions, charCount: number): number[] {
   const originalSetTimeout = window.setTimeout.bind(window);
   const capturedDelays: number[] = [];
 
-  window.setTimeout = ((fn: any, delay?: number, ...args: any[]) => {
+  window.setTimeout = ((fn: TimerHandler, delay?: number, ...args: unknown[]) => {
     if (typeof delay === 'number') {
       capturedDelays.push(delay);
     }
     return originalSetTimeout(fn, delay, ...args);
-  }) as any;
+  });
 
-  const controller = createTyped(el, { ...options, cursor: false });
+  const controller = createTyped(el, { ...options, cursor: { enabled: false } });
   controller.start();
 
   for (let i = 0; i < charCount + 2; i++) {
