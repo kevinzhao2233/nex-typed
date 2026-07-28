@@ -771,12 +771,12 @@ function measureTickDelays(el: HTMLElement, options: TypedOptions, charCount: nu
   const originalSetTimeout = window.setTimeout.bind(window);
   const capturedDelays: number[] = [];
 
-  window.setTimeout = ((fn: TimerHandler, delay?: number, ...args: unknown[]) => {
+  window.setTimeout = (fn: TimerHandler, delay?: number, ...args: unknown[]) => {
     if (typeof delay === 'number') {
       capturedDelays.push(delay);
     }
     return originalSetTimeout(fn, delay, ...args);
-  });
+  };
 
   const controller = createTyped(el, { ...options, cursor: { enabled: false } });
   controller.start();
@@ -794,11 +794,15 @@ test('speedProfile easeIn should produce increasing delays', () => {
   const el = document.createElement('div');
   document.body.appendChild(el);
 
-  const delays = measureTickDelays(el, {
-    strings: ['ABCDE'],
-    typeSpeed: 100,
-    speedProfile: 'easeIn',
-  }, 5);
+  const delays = measureTickDelays(
+    el,
+    {
+      strings: ['ABCDE'],
+      typeSpeed: 100,
+      speedProfile: 'easeIn',
+    },
+    5,
+  );
 
   el.remove();
 
@@ -813,11 +817,15 @@ test('speedProfile easeOut should produce increasing delays (fast then slow typi
   const el = document.createElement('div');
   document.body.appendChild(el);
 
-  const delays = measureTickDelays(el, {
-    strings: ['ABCDE'],
-    typeSpeed: 100,
-    speedProfile: 'easeOut',
-  }, 5);
+  const delays = measureTickDelays(
+    el,
+    {
+      strings: ['ABCDE'],
+      typeSpeed: 100,
+      speedProfile: 'easeOut',
+    },
+    5,
+  );
 
   el.remove();
 
@@ -832,11 +840,15 @@ test('speedProfile easeInOut should produce delays that increase then plateau', 
   const el = document.createElement('div');
   document.body.appendChild(el);
 
-  const delays = measureTickDelays(el, {
-    strings: ['ABCDEFGH'],
-    typeSpeed: 100,
-    speedProfile: 'easeInOut',
-  }, 8);
+  const delays = measureTickDelays(
+    el,
+    {
+      strings: ['ABCDEFGH'],
+      typeSpeed: 100,
+      speedProfile: 'easeInOut',
+    },
+    8,
+  );
 
   el.remove();
 
@@ -852,11 +864,15 @@ test('speedProfile linear should produce constant delays', () => {
   const el = document.createElement('div');
   document.body.appendChild(el);
 
-  const delays = measureTickDelays(el, {
-    strings: ['ABC'],
-    typeSpeed: 50,
-    speedProfile: 'linear',
-  }, 3);
+  const delays = measureTickDelays(
+    el,
+    {
+      strings: ['ABC'],
+      typeSpeed: 50,
+      speedProfile: 'linear',
+    },
+    3,
+  );
 
   el.remove();
 
@@ -871,18 +887,22 @@ test('typeSpeedVariance should vary delay based on random value', () => {
 
   const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.75);
 
-  const delays = measureTickDelays(el, {
-    strings: ['AB'],
-    typeSpeed: 100,
-    typeSpeedVariance: 50,
-  }, 2);
+  const delays = measureTickDelays(
+    el,
+    {
+      strings: ['AB'],
+      typeSpeed: 100,
+      typeSpeedVariance: 50,
+    },
+    2,
+  );
 
   randomSpy.mockRestore();
   el.remove();
 
   const tickDelays = delays.slice(1, 2);
   expect(tickDelays.length).toBe(1);
-  const variance = (0.75 - 0.5) * 2 * 50 / 100;
+  const variance = ((0.75 - 0.5) * 2 * 50) / 100;
   const expectedDelay = Math.max(10, Math.round(100 * (1 + variance)));
   expect(tickDelays[0]).toBe(expectedDelay);
 });
@@ -891,11 +911,15 @@ test('typeSpeedVariance should keep delay within typeSpeed bounds', () => {
   const el = document.createElement('div');
   document.body.appendChild(el);
 
-  const delays = measureTickDelays(el, {
-    strings: ['ABCDEFGHIJ'],
-    typeSpeed: 100,
-    typeSpeedVariance: 50,
-  }, 10);
+  const delays = measureTickDelays(
+    el,
+    {
+      strings: ['ABCDEFGHIJ'],
+      typeSpeed: 100,
+      typeSpeedVariance: 50,
+    },
+    10,
+  );
 
   el.remove();
 
@@ -911,11 +935,15 @@ test('humanTypeDelay should produce delays within min-max range', () => {
   const el = document.createElement('div');
   document.body.appendChild(el);
 
-  const delays = measureTickDelays(el, {
-    strings: ['ABCDEFGHIJ'],
-    typeSpeed: 50,
-    humanTypeDelay: { min: 30, max: 100 },
-  }, 10);
+  const delays = measureTickDelays(
+    el,
+    {
+      strings: ['ABCDEFGHIJ'],
+      typeSpeed: 50,
+      humanTypeDelay: { min: 30, max: 100 },
+    },
+    10,
+  );
 
   el.remove();
 
@@ -933,11 +961,15 @@ test('humanTypeDelay should override typeSpeed', () => {
 
   const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
-  const delays = measureTickDelays(el, {
-    strings: ['AB'],
-    typeSpeed: 50,
-    humanTypeDelay: { min: 30, max: 100 },
-  }, 2);
+  const delays = measureTickDelays(
+    el,
+    {
+      strings: ['AB'],
+      typeSpeed: 50,
+      humanTypeDelay: { min: 30, max: 100 },
+    },
+    2,
+  );
 
   randomSpy.mockRestore();
   el.remove();

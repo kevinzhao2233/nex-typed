@@ -30,6 +30,18 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["demo.html"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noImportantStyles": "off"
+          }
+        }
+      }
+    }
+  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "single"

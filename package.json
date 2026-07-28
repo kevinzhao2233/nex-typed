@@ -14,10 +14,23 @@
     "url": "https://github.com/kevinzhao2233/nex-typed/issues"
   },
   "exports": {
-    ".": "./dist/index.mjs",
+    ".": "./dist/index.js",
     "./package.json": "./package.json"
   },
-  "types": "./dist/index.d.mts",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "keywords": [
+    "typed",
+    "typing",
+    "animation",
+    "typewriter",
+    "terminal",
+    "typescript",
+    "zero-dependency"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "files": [
     "dist"
   ],
@@ -27,7 +40,7 @@
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run typecheck && pnpm run lint && pnpm run test -- --run && pnpm run build"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.12",

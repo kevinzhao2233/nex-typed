@@ -44,10 +44,6 @@ yarn add nex-typed
 
 ## 📚 Documentation
 
-### [📖 Full Documentation](./docs/README.md)
-
-Complete documentation with examples and API reference.
-
 ### [🔧 API Reference](./docs/API.md)
 
 Detailed API documentation for all interfaces, options, and methods.

@@ -1077,8 +1077,8 @@
           typeSpeed: 60,
           shuffle: true,
           cursor: { enabled: true, char: '|', blink: true },
-          onShuffle: (orig, shuffled) => {
-            logEvent('shuffle-log', 'onShuffle', `→ [${shuffled.map((s, i) => `"${s}"`).join(', ')}]`);
+          onShuffle: (_orig, shuffled) => {
+            logEvent('shuffle-log', 'onShuffle', `→ [${shuffled.map((s, _i) => `"${s}"`).join(', ')}]`);
           },
           onStringStart: (i, t) => logEvent('shuffle-log', 'onStringStart', `[${i}] "${t}"`),
           onStringEnd: (i, t) => logEvent('shuffle-log', 'onStringEnd', `[${i}] "${t}"`),
@@ -1106,10 +1106,10 @@
           onComplete: () => logEvent('callback-log', 'onComplete'),
           onPause: (i, c) => logEvent('callback-log', 'onPause', `str=${i} char=${c}`),
           onResume: (i, c) => logEvent('callback-log', 'onResume', `str=${i} char=${c}`),
-          onBackspaceStart: (i, t) => logEvent('callback-log', 'onBackspaceStart', `[${i}]`),
-          onBackspaceEnd: (i, t) => logEvent('callback-log', 'onBackspaceEnd', `[${i}]`),
+          onBackspaceStart: (i, _t) => logEvent('callback-log', 'onBackspaceStart', `[${i}]`),
+          onBackspaceEnd: (i, _t) => logEvent('callback-log', 'onBackspaceEnd', `[${i}]`),
           onLoop: (i) => logEvent('callback-log', 'onLoop', `loop at ${i}`),
-          onShuffle: (o, s) => logEvent('callback-log', 'onShuffle', ''),
+          onShuffle: (_o, _s) => logEvent('callback-log', 'onShuffle', ''),
         });
         controllers.callback.start();
       };
