@@ -56,10 +56,6 @@ Detailed API documentation for all interfaces, options, and methods.
 
 Practical usage examples and best practices.
 
-### [🔄 Migration Guide](./docs/MIGRATION.md)
-
-Migrating from typed.js to nex-typed.
-
 ### [🎨 Examples](./docs/EXAMPLES.md)
 
 Real-world examples and use cases.
@@ -288,30 +284,6 @@ controller.setSpeed(30); // Change typing speed dynamically
   chatSimulation();
 </script>
 ```
-
-## 📦 Bundle Size Comparison
-
-| Library       | Size (minified) | Dependencies   | TypeScript |
-| ------------- | --------------- | -------------- | ---------- |
-| typed.js      | ~20KB           | jQuery (~85KB) | ❌ No      |
-| **nex-typed** | **~5KB**        | **None**       | ✅ **Yes** |
-
-**nex-typed is 75% smaller and has zero dependencies!**
-
-## 🎯 Feature Comparison
-
-| Feature            | typed.js | nex-typed |
-| ------------------ | -------- | --------- |
-| TypeScript Support | ❌       | ✅        |
-| Zero Dependencies  | ❌       | ✅        |
-| Backspace/Delete   | ❌       | ✅        |
-| Looping            | ❌       | ✅        |
-| Human-like Typing  | ❌       | ✅        |
-| Speed Variation    | ❌       | ✅        |
-| Randomization      | ❌       | ✅        |
-| Speed Profiles     | ❌       | ✅        |
-| Advanced Cursor    | ❌       | ✅        |
-| Dynamic Control    | ❌       | ✅        |
 
 ## 📄 License
 
