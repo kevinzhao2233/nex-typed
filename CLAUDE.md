@@ -108,7 +108,7 @@ pnpm run test -- tests/index.test.ts
 
 - **Bundler**: tsdown (Rollup-based TypeScript bundler)
 - **Type System**: TypeScript 5.9.3 with strict mode enabled
-- **Output**: ESM format (`.mjs` files) with TypeScript declarations (`.d.mts`)
+- **Output**: ESM format (`.js` files) with TypeScript declarations (`.d.ts`)
 - **Target**: ES Next with DOM and ES2023 lib support
 - **Declaration files**: Generated separately via `emitDeclarationOnly: true`
 
