@@ -35,11 +35,11 @@ The codebase follows a modular architecture with clear separation of concerns:
 
 **`src/types.ts`** - Type definitions
 
-- `TypedTarget` - Union type for DOM element or CSS selector
-- `TypedState` - Internal state management interface
-- `TypedOptions` - Configuration options for typing behavior
+- `NexTypedTarget` - Union type for DOM element or CSS selector
+- `NexTypedState` - Internal state management interface
+- `NexTypedOptions` - Configuration options for typing behavior
 - `CursorOptions` - Cursor configuration interface
-- `TypedController` - Public API interface for controlling animation
+- `NexTypedController` - Public API interface for controlling animation
 
 **`src/index.ts`** - Public API exports
 

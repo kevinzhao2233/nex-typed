@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createTyped } from '../src';
-import type { TypedOptions } from '../src/types';
+import type { NexTypedOptions } from '../src/types';
 
 let testElement: HTMLElement;
 
@@ -767,7 +767,7 @@ test('shuffle should randomize string order and call onShuffle', () => {
   expect(shuffled.sort()).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']);
 });
 
-function measureTickDelays(el: HTMLElement, options: TypedOptions, charCount: number): number[] {
+function measureTickDelays(el: HTMLElement, options: NexTypedOptions, charCount: number): number[] {
   const originalSetTimeout = window.setTimeout.bind(window);
   const capturedDelays: number[] = [];
 

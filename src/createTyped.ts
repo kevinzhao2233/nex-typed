@@ -1,7 +1,7 @@
 import { createCursor } from './cursor';
-import type { TypedController, TypedOptions, TypedState, TypedTarget } from './types';
+import type { NexTypedController, NexTypedOptions, NexTypedState, NexTypedTarget } from './types';
 
-function resolveElement(target: TypedTarget): HTMLElement {
+function resolveElement(target: NexTypedTarget): HTMLElement {
   if (typeof target === 'string') {
     const el = document.querySelector(target);
     if (!el) throw new Error(`Target not found: ${target}`);
@@ -10,10 +10,10 @@ function resolveElement(target: TypedTarget): HTMLElement {
   return target;
 }
 
-export function createTyped(target: TypedTarget, options: TypedOptions): TypedController {
+export function createTyped(target: NexTypedTarget, options: NexTypedOptions): NexTypedController {
   const el = resolveElement(target);
 
-  const state: TypedState = {
+  const state: NexTypedState = {
     el,
     strings: options.strings,
     index: 0,

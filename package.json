@@ -38,9 +38,10 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "test": "vitest",
+    "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
-    "prepublishOnly": "pnpm run typecheck && pnpm run lint && pnpm run test -- --run && pnpm run build"
+    "prepublishOnly": "pnpm run typecheck && pnpm run lint && pnpm run test:run && pnpm run build"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.12",

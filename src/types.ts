@@ -1,6 +1,6 @@
-export type TypedTarget = HTMLElement | string;
+export type NexTypedTarget = HTMLElement | string;
 
-export interface TypedState {
+export interface NexTypedState {
   el: HTMLElement;
   strings: string[];
   running: boolean; // 是否已 start
@@ -41,7 +41,7 @@ export interface CursorController {
   destroy(): void;
 }
 
-export interface TypedOptions {
+export interface NexTypedOptions {
   strings: string[];
   typeSpeed?: number;
   startDelay?: number;
@@ -80,7 +80,7 @@ export interface TypedOptions {
   onShuffle?: (originalOrder: string[], shuffledOrder: string[]) => void; // 随机打乱回调
 }
 
-export interface TypedController {
+export interface NexTypedController {
   start(): void;
   stop(): void;
   destroy(): void;

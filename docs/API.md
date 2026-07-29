@@ -13,7 +13,7 @@ Creates a new typing animation controller.
 - `target` - DOM element or CSS selector string
 - `options` - Configuration options object
 
-**Returns:** `TypedController`
+**Returns:** `NexTypedController`
 
 **Example:**
 
@@ -28,12 +28,12 @@ const controller = createTyped('#terminal', {
 
 ## Type Definitions
 
-### `TypedTarget`
+### `NexTypedTarget`
 
 Target element for typing animation.
 
 ```typescript
-type TypedTarget = HTMLElement | string;
+type NexTypedTarget = HTMLElement | string;
 ```
 
 **Examples:**
@@ -50,12 +50,12 @@ createTyped('.typing-container', options);
 
 ---
 
-### `TypedOptions`
+### `NexTypedOptions`
 
 Configuration options for typing animation.
 
 ```typescript
-interface TypedOptions {
+interface NexTypedOptions {
   // Basic Options
   strings: string[];
   typeSpeed?: number;
@@ -299,12 +299,12 @@ interface CursorOptions {
 
 ---
 
-### `TypedController`
+### `NexTypedController`
 
 Controller returned by `createTyped()` for controlling the animation.
 
 ```typescript
-interface TypedController {
+interface NexTypedController {
   // Basic Controls
   start(): void;
   stop(): void;
@@ -439,7 +439,7 @@ interface CursorController {
 ```
 
 **Note:** This interface is primarily for internal use. Most users will interact with
-`TypedController` methods instead.
+`NexTypedController` methods instead.
 
 ---
 
@@ -624,15 +624,15 @@ controller.backspace(); // No effect if not running or paused
 nex-typed is written in TypeScript and includes complete type definitions:
 
 ```typescript
-import { createTyped, TypedOptions, TypedController } from 'nex-typed';
+import { createTyped, NexTypedOptions, NexTypedController } from 'nex-typed';
 
 // Full type safety
-const options: TypedOptions = {
+const options: NexTypedOptions = {
   strings: ['Hello'],
   typeSpeed: 50,
 };
 
-const controller: TypedController = createTyped('#target', options);
+const controller: NexTypedController = createTyped('#target', options);
 ```
 
 ---
@@ -673,7 +673,7 @@ import { createTyped } from 'nex-typed';
 export default {
   setup() {
     const terminal = ref<HTMLElement | null>(null);
-    let controller: TypedController | null = null;
+    let controller: NexTypedController | null = null;
 
     onMounted(() => {
       if (terminal.value) {
@@ -702,7 +702,7 @@ export default {
   import { createTyped } from 'nex-typed';
 
   let terminal: HTMLElement;
-  let controller: TypedController;
+  let controller: NexTypedController;
 
   onMount(() => {
     controller = createTyped(terminal, {
