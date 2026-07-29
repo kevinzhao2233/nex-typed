@@ -1,0 +1,23 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "nex-typed",
+  "description": "Zero-dependency, TypeScript-native browser library for creating terminal-style typing animations. Single-function API: createTyped(target, options) returns a NexTypedController for runtime control. Supports multiple strings, custom cursors, backspace/delete effects, loops, human-like timing, speed curves, shuffle, and 10+ callback hooks. ESM only, targets ES2023 + DOM APIs.",
+  "excludeFolders": [
+    "src",
+    "tests",
+    "dist",
+    "node_modules",
+    ".git"
+  ],
+  "rules": [
+    "nex-typed is browser-only. It uses document, window.setTimeout, and window.setInterval. Do not use it in Node.js or SSR without a DOM shim.",
+    "Always call controller.destroy() when done to prevent timer and DOM leaks. In React use useEffect cleanup, in Vue use onUnmounted, in Svelte use onDestroy.",
+    "Use pause()/resume() for temporary halts. stop() cannot be cleanly resumed — to restart, call destroy() and create a new controller with createTyped().",
+    "The entire public API is a single function: createTyped(target, options). It returns a NexTypedController object with methods like start, pause, resume, stop, destroy, backspace, deleteString, skip, goTo, setSpeed, and setCursorBlinkSpeed.",
+    "The strings option is required. All other NexTypedOptions fields are optional with sensible defaults (typeSpeed=50ms, startDelay=0, loop=false, etc.).",
+    "Cursor style option accepts either a CSS class name (string) or an inline styles object with camelCase keys that get converted to kebab-case CSS properties.",
+    "humanTypeDelay, when set, fully replaces typeSpeed for per-character random delay. It is still affected by speedProfile and pauseOnPunctuation.",
+    "The package is ESM only. Import via: import { createTyped } from 'nex-typed'.",
+    "Refer to llms.txt at the repository root for a concise API summary with inline examples. Detailed documentation lives in docs/API.md, docs/USAGE.md, and docs/EXAMPLES.md."
+  ]
+}

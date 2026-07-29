@@ -1,0 +1,192 @@
+# nex-typed
+
+> nex-typed is a zero-dependency, TypeScript-native browser library for creating terminal-style typing animations. The entire public API is a single function `createTyped(target, options)` that returns a `NexTypedController` for runtime control (start, pause, resume, stop, destroy, backspace, skip, goTo, setSpeed, etc.). It supports multiple strings, custom blinking cursors, backspace/delete effects, loops, human-like timing, speed curves, shuffle, and 10+ callback hooks. ESM only, targets ES2023 + DOM APIs, ~2.8KB gzipped.
+
+## Installation
+
+```bash
+npm install nex-typed
+# or
+pnpm add nex-typed
+# or
+yarn add nex-typed
+```
+
+## Minimal Usage
+
+```typescript
+import { createTyped } from 'nex-typed';
+
+const controller = createTyped('#terminal', {
+  strings: ['Hello World!', 'Welcome to nex-typed.'],
+  typeSpeed: 50,
+  cursor: { enabled: true, char: '▌' },
+});
+
+controller.start();
+```
+
+HTML:
+
+```html
+<div id="terminal"></div>
+```
+
+## Core API
+
+### `createTyped(target, options): NexTypedController`
+
+- `target`: `HTMLElement | string` (CSS selector or DOM element)
+- `options`: `NexTypedOptions` (see below)
+- Returns: `NexTypedController` (see below)
+
+Throws if the selector resolves to no element.
+
+### `NexTypedOptions`
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `strings` | `string[]` | (required) | Strings to type sequentially |
+| `typeSpeed` | `number` | `50` | Ms per character (lower = faster) |
+| `startDelay` | `number` | `0` | Delay before first character (ms) |
+| `cursor` | `CursorOptions` | — | Cursor config (see below) |
+| `backspaceSpeed` | `number` | `30` | Ms per character when backspacing |
+| `deleteStrings` | `boolean` | `false` | Auto-delete each string after typing |
+| `deleteDelay` | `number` | `1000` | Delay before auto-delete (ms) |
+| `loop` | `boolean` | `false` | Restart from first string after completion |
+| `humanTypeDelay` | `{min:number;max:number}` | — | Random per-char delay; fully replaces `typeSpeed` (still affected by `speedProfile` and `pauseOnPunctuation`) |
+| `stringPauseDelay` | `number` | `500` | Delay between strings (ms) |
+| `pauseOnPunctuation` | `boolean` | `false` | +200ms after `. ! ? ，。！？` |
+| `typeSpeedVariance` | `number` | `0` | ±N% random speed variation (0-100) |
+| `shuffle` | `boolean` | `false` | Randomize string order (re-shuffles each loop) |
+| `speedProfile` | `'linear'\|'easeIn'\|'easeOut'\|'easeInOut'` | `'linear'` | Typing speed curve |
+| `onBegin` | `() => void` | — | Animation starts |
+| `onStringStart` | `(index, text) => void` | — | A string begins typing |
+| `onStringEnd` | `(index, text) => void` | — | A string finishes typing |
+| `onComplete` | `() => void` | — | All strings done (not called in loop mode) |
+| `onPause` | `(index, charIndex) => void` | — | Paused |
+| `onResume` | `(index, charIndex) => void` | — | Resumed |
+| `onBackspaceStart` | `(index, text) => void` | — | Backspace/delete begins |
+| `onBackspaceEnd` | `(index, text) => void` | — | Backspace/delete ends |
+| `onLoop` | `(index) => void` | — | Loop restarts (`index` = just-completed string) |
+| `onShuffle` | `(original, shuffled) => void` | — | Strings shuffled |
+
+### `CursorOptions`
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `boolean` | (required) | Show cursor |
+| `char` | `string` | `\|` | Cursor character |
+| `blink` | `boolean` | `true` | Blink cursor |
+| `blinkSpeed` | `number` | `500` | Ms between on/off |
+| `blinkCount` | `number` | `0` | Number of blinks; `0` = infinite; stays visible after |
+| `hideWhenComplete` | `boolean` | `false` | Hide cursor when animation completes |
+| `style` | `string \| Partial<CSSStyleDeclaration>` | — | CSS class name (string) OR inline styles object (camelCase keys → kebab-case) |
+
+### `NexTypedController` methods
+
+| Method | Description |
+|---|---|
+| `start()` | Begin animation. No-op if already running. Mounts cursor. |
+| `pause()` | Pause (hides cursor). Resumable with `resume()`. |
+| `resume()` | Resume from paused state. Restarts blinking. |
+| `stop()` | Halt immediately. Hides cursor, clears timers. **Not cleanly resumable** — `start()` after `stop()` leaves inconsistent state. To restart, `destroy()` and create a new controller. |
+| `destroy()` | Full cleanup: removes DOM elements, clears all timers. Cannot restart. |
+| `backspace()` | Manually trigger backspace on current string (uses `backspaceSpeed`). No-op if not running/paused or already backspacing. |
+| `deleteString()` | Delete entire current string, then advance to next. |
+| `skip()` | Instantly show full current string, trigger `onStringEnd`, advance. |
+| `goTo(index)` | Jump to string at `index` (0-based). Invalid indices silently ignored. Clears text, waits `stringPauseDelay`, then types from first char. |
+| `getTypeSpeed()` | Returns current typing speed (ms). |
+| `setSpeed(speed)` | Dynamically change typing speed (ms per char). Affects subsequent characters. |
+| `getCursorBlinkSpeed()` | Returns current cursor blink speed (ms). |
+| `setCursorBlinkSpeed(speed)` | Dynamically change blink speed. Updates immediately if blinking. |
+
+## DOM Structure
+
+```
+[target element]
+└── [span data-nex-typed-root]
+    ├── [span data-nex-typed-text] (typed text content)
+    └── [span data-nex-typed-cursor] (optional cursor, aria-hidden)
+```
+
+## Critical Notes
+
+- **Browser-only**: Uses `document`, `window.setTimeout`, `window.setInterval`. No SSR/Node.js support without a DOM shim.
+- **Always destroy()**: Call `destroy()` when done (e.g. in React `useEffect` cleanup, Vue `onUnmounted`, Svelte `onDestroy`) to prevent timer/DOM leaks.
+- **pause() vs stop()**: Use `pause()`/`resume()` for temporary halts. `stop()` cannot be cleanly resumed — to restart, `destroy()` and create a new controller.
+- **No framework dependency**: Vanilla TS. Works with React, Vue, Svelte, Angular via standard lifecycle hooks.
+- **ESM only**: Package exports are ESM. Target: ES2023 + DOM lib.
+- **Cursor `style` object**: Keys are camelCase CSS properties (e.g. `{ color: 'red', fontWeight: 'bold' }`), converted to kebab-case and applied via `style.setProperty`. String value = CSS class name added via `classList.add`.
+
+## Framework Integration Patterns
+
+### React
+
+```typescript
+import { useEffect, useRef } from 'react';
+import { createTyped } from 'nex-typed';
+
+function TypingComponent() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    const controller = createTyped(ref.current, {
+      strings: ['Hello React!'],
+      typeSpeed: 50,
+    });
+    controller.start();
+    return () => controller.destroy();
+  }, []);
+  return <div ref={ref} />;
+}
+```
+
+### Vue 3
+
+```typescript
+import { onMounted, onUnmounted, ref } from 'vue';
+import { createTyped } from 'nex-typed';
+
+const terminal = ref<HTMLElement | null>(null);
+let controller;
+onMounted(() => {
+  if (terminal.value) {
+    controller = createTyped(terminal.value, { strings: ['Hello Vue!'], typeSpeed: 50 });
+    controller.start();
+  }
+});
+onUnmounted(() => controller?.destroy());
+```
+
+### Svelte
+
+```svelte
+<script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
+  import { createTyped } from 'nex-typed';
+  let terminal: HTMLElement;
+  let controller;
+  onMount(() => {
+    controller = createTyped(terminal, { strings: ['Hello Svelte!'], typeSpeed: 50 });
+    controller.start();
+  });
+  onDestroy(() => controller?.destroy());
+</script>
+<div bind:this={terminal}></div>
+```
+
+## Docs
+
+- [API Reference](https://github.com/kevinzhao2233/nex-typed/blob/main/docs/API.md): Complete API documentation with all interfaces, options, methods, and error handling. (raw: https://raw.githubusercontent.com/kevinzhao2233/nex-typed/main/docs/API.md)
+- [Usage Guide](https://github.com/kevinzhao2233/nex-typed/blob/main/docs/USAGE.md): Practical usage examples from basic to expert, common patterns, troubleshooting. (raw: https://raw.githubusercontent.com/kevinzhao2233/nex-typed/main/docs/USAGE.md)
+
+## Examples
+
+- [Examples](https://github.com/kevinzhao2233/nex-typed/blob/main/docs/EXAMPLES.md): 10+ real-world examples — terminal emulator, typewriter, chat interface, code editor, loading indicators, game dialog, email composer, social media feed, multi-controller coordination, conditional animation, sound effects. (raw: https://raw.githubusercontent.com/kevinzhao2233/nex-typed/main/docs/EXAMPLES.md)
+
+## Optional
+
+- [README](https://github.com/kevinzhao2233/nex-typed/blob/main/README.md): Project overview, quick start, feature list, configuration summary. (raw: https://raw.githubusercontent.com/kevinzhao2233/nex-typed/main/README.md)
+- [npm Package](https://www.npmjs.com/package/nex-typed): Published package page.
+- [GitHub Repository](https://github.com/kevinzhao2233/nex-typed): Source code and issue tracker.

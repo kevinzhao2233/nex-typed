@@ -35,7 +35,7 @@ yarn add nex-typed
 
 ## 🎯 Key Features
 
-- ✅ **Modern TypeScript** - Full type safety with TypeScript 5.9
+- ✅ **Modern TypeScript** - Full type safety with TypeScript
 - ✅ **Lightweight** - Zero dependencies, ~12KB minified (~2.8KB gzipped)
 - ✅ **Feature Rich** - Backspace, loops, speed control, callbacks
 - ✅ **Customizable** - Flexible cursor and animation options
@@ -43,6 +43,10 @@ yarn add nex-typed
 - ✅ **Memory Safe** - Proper cleanup and timer management
 
 ## 📚 Documentation
+
+### 🤖 For AI Agents
+
+This repository provides [`llms.txt`](./llms.txt) — a concise, LLM-friendly API summary with inline examples so AI coding assistants (Claude Code, Cursor, Copilot, etc.) can use nex-typed correctly without crawling the full docs.
 
 ### [🔧 API Reference](./docs/API.md)
 
